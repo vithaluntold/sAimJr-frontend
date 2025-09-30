@@ -38,6 +38,7 @@ import type {
 import APICompanyStorage, { CompanyStorage } from "../lib/api-company-storage"
 import AISmartInput from "./ai-smart-input"
 import { FileUploadPrompt } from "./file-upload-prompt"
+import { DynamicSaimAvatar, type AvatarExpression } from "./dynamic-saim-avatar"
 
 const initialBusinessProfileQuestions = [
   {
@@ -1369,6 +1370,36 @@ export function ChatPanel({
     })
   }
 
+  // Function to determine S(ai)m's avatar expression based on message content
+  const getSaimAvatarExpression = (messageText: string, isProcessing: boolean = false): AvatarExpression => {
+    if (isProcessing) return "thinking"
+    
+    // Greeting expressions
+    if (messageText.includes("Hello") || messageText.includes("Welcome") || messageText.includes("Let's set up")) {
+      return "greeting"
+    }
+    
+    // Confused expressions
+    if (messageText.includes("error") || messageText.includes("sorry") || messageText.includes("issue") || 
+        messageText.includes("problem") || messageText.includes("unavailable")) {
+      return "confused"
+    }
+    
+    // Shrugging expressions (uncertainty)
+    if (messageText.includes("skip") || messageText.includes("optional") || messageText.includes("we can") ||
+        messageText.includes("would you like") || messageText.includes("choose")) {
+      return "shrugging"
+    }
+    
+    // Thinking expressions
+    if (messageText.includes("processing") || messageText.includes("analyzing") || messageText.includes("AI") ||
+        messageText.includes("suggestions") || messageText.includes("Let me")) {
+      return "thinking"
+    }
+    
+    return "default"
+  }
+
   const handleRuleCreationInput = (input: string) => {
     if (!activeRuleCreation || !companyProfile) return
     const nextRuleState = { ...activeRuleCreation }
@@ -1656,10 +1687,10 @@ export function ChatPanel({
             )}
           </p>
         </div>
-        <Avatar className="h-10 w-10 md:h-12 md:w-12">
-          <AvatarImage src="/modern-ai-avatar.png" />
-          <AvatarFallback className="bg-primary text-primary-foreground">SJ</AvatarFallback>
-        </Avatar>
+        <DynamicSaimAvatar 
+          expression={messages.length > 0 ? getSaimAvatarExpression(messages[messages.length - 1]?.text || "", false) : "greeting"}
+          className="h-10 w-10 md:h-12 md:w-12"
+        />
       </div>
 
       {/* [Rest of the JSX remains similar with enhanced messaging about AI context] */}
@@ -1677,10 +1708,11 @@ export function ChatPanel({
                 className={cn("flex items-end gap-2.5", msg.sender === "user" ? "flex-row-reverse" : "")}
               >
                 {msg.sender === "saim" && (
-                  <Avatar className="h-7 w-7 self-start flex-shrink-0">
-                    <AvatarImage src="/modern-ai-avatar.png" />
-                    <AvatarFallback className="bg-primary/20 text-primary text-xs">SJ</AvatarFallback>
-                  </Avatar>
+                  <DynamicSaimAvatar 
+                    expression={getSaimAvatarExpression(msg.text || "", msg.isProcessing)}
+                    isProcessing={msg.isProcessing}
+                    className="h-7 w-7 self-start flex-shrink-0"
+                  />
                 )}
                 <div
                   className={cn(
