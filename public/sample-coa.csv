@@ -1,0 +1,12 @@
+Account Code,Account Name,Account Category,Class,Statement
+1000,Cash,Assets,Asset,Balance Sheet
+1100,Accounts Receivable,Assets,Asset,Balance Sheet
+1200,Inventory,Assets,Asset,Balance Sheet
+2000,Accounts Payable,Liabilities,Liability,Balance Sheet
+2100,Salaries Payable,Liabilities,Liability,Balance Sheet
+3000,Owner's Equity,Equity,Equity,Balance Sheet
+4000,Sales Revenue,Revenue,Revenue,Income Statement
+4100,Service Revenue,Revenue,Revenue,Income Statement
+5000,Cost of Goods Sold,Expenses,Expense,Income Statement
+6000,Rent Expense,Expenses,Expense,Income Statement
+6100,Utilities Expense,Expenses,Expense,Income Statement
