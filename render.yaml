@@ -2,8 +2,8 @@ services:
   - type: web
     name: saimjr-frontend
     env: node
-    runtime: node-18.18.0
-    buildCommand: npm ci && npm run build
+    runtime: node-20.17.0
+    buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
