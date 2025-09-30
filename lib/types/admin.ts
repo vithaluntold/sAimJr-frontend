@@ -1,5 +1,9 @@
 // Admin-specific types
-import type { UserRole, SubscriptionTier } from "./someModule" // Assuming these types are declared in another module
+// import type { UserRole, SubscriptionTier } from "./someModule" // Assuming these types are declared in another module
+
+// Define types locally for now
+export type UserRole = 'admin' | 'user' | 'moderator';
+export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 
 export interface AdminUser {
   id: string

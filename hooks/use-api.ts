@@ -8,7 +8,7 @@ export function useAPI() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<APIError | null>(null)
 
-  const execute = useCallback(async (apiCall) => {
+  const execute = useCallback(async (apiCall: () => Promise<any>) => {
     setLoading(true)
     setError(null)
 
@@ -27,7 +27,7 @@ export function useAPI() {
   return { loading, error, execute }
 }
 
-export function useCompanyProfile(companyId) {
+export function useCompanyProfile(companyId: string) {
   const [profile, setProfile] = useState(null)
   const { loading, error, execute } = useAPI()
 
@@ -41,7 +41,7 @@ export function useCompanyProfile(companyId) {
   }, [companyId, execute])
 
   const updateProfile = useCallback(
-    async (updates) => {
+    async (updates: any) => {
       if (!companyId) return null
 
       const result = await execute(() => apiClient.updateCompanyProfile(companyId, updates))
@@ -60,7 +60,7 @@ export function useCompanyProfile(companyId) {
   return { profile, loading, error, updateProfile, refetch: fetchProfile }
 }
 
-export function useProcessingRun(runId) {
+export function useProcessingRun(runId: string) {
   const [run, setRun] = useState(null)
   const [status, setStatus] = useState("idle")
   const { loading, error, execute } = useAPI()

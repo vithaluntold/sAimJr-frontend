@@ -2,9 +2,10 @@
 import { apiClient } from "./api-client"
 
 export type WebSocketMessage = {
-  type: "processing_update" | "exception_found" | "step_complete" | "error"
-  data: any
+  type: "processing_update" | "exception_found" | "step_complete" | "error" | "connected"
+  data?: any
   timestamp: string
+  runId?: string
 }
 
 export class WebSocketManager {
@@ -22,11 +23,20 @@ export class WebSocketManager {
 
   connect() {
     try {
-      this.ws = apiClient.createWebSocket(this.runId)
+      // For now, create WebSocket directly since apiClient.createWebSocket doesn't exist yet
+      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'
+      const fullUrl = `${wsUrl}/ws/${this.runId}`
+      
+      this.ws = new WebSocket(fullUrl)
 
       this.ws.onopen = () => {
         console.log("WebSocket connected")
         this.reconnectAttempts = 0
+        this.onMessage({ 
+          type: 'processing_update', 
+          data: { status: 'connected' }, 
+          timestamp: new Date().toISOString() 
+        })
       }
 
       this.ws.onmessage = (event) => {

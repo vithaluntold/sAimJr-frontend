@@ -10,8 +10,8 @@ const dotVariants = {
     y: ["0%", "-70%", "0%"], // Bouncing effect
     transition: {
       duration: 0.7,
-      ease: "easeInOut",
-      repeat: Number.POSITIVE_INFINITY,
+      ease: "easeInOut" as const,
+      repeat: Infinity,
     },
   },
 }

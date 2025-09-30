@@ -113,7 +113,7 @@ export class LoadBalancer {
 
     try {
       const response = await fetch(`http://${instance.host}:${instance.port}/health`, {
-        timeout: 5000,
+        // timeout: 5000, // Not supported in fetch
       })
 
       const responseTime = Date.now() - start
