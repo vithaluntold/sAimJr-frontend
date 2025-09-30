@@ -37,6 +37,7 @@ import type {
 } from "../lib/types"
 import APICompanyStorage, { CompanyStorage } from "../lib/api-company-storage"
 import AISmartInput from "./ai-smart-input"
+import { FileUploadPrompt } from "./file-upload-prompt"
 
 const initialBusinessProfileQuestions = [
   {
@@ -1323,6 +1324,39 @@ export function ChatPanel({
     }, estimatedDuration * 1000)
   }
 
+  const handleFileUpload = (fileType: string, file: File) => {
+    addUserMessage(`Uploaded ${file.name} (${fileType})`)
+    setIsAwaitingResponse(true)
+    
+    // Store the file for processing
+    setCurrentFileForPeriod(file)
+    
+    handleSaimResponse(() => {
+      if (fileType === "bank_statement") {
+        // For bank statements, ask for period dates
+        addSaimMessage("Great! I need the statement period. What's the 'from' date (YYYY-MM-DD)?")
+        setAwaitingDateInput("from")
+      } else if (fileType === "contacts") {
+        // Process contacts file
+        addSaimMessage("Processing contacts file...")
+        setTimeout(() => {
+          addSaimMessage("✅ Contacts processed successfully! Ready for the next step.")
+          onShowOutput("contacts", [
+            { id: "1", name: "Sample Contact", email: "contact@example.com", phone: "123-456-7890" }
+          ])
+          proceedToNextStepPrompt(3)
+        }, 2000)
+      } else if (fileType === "coa") {
+        // Process COA file
+        addSaimMessage("Processing Chart of Accounts...")
+        setTimeout(() => {
+          addSaimMessage("✅ Chart of Accounts uploaded successfully!")
+          proceedToNextStepPrompt(2)
+        }, 2000)
+      }
+    })
+  }
+
   const handleSkipUpload = (fileType: string) => {
     addUserMessage(`Skipped uploading ${fileType}`)
     setIsAwaitingResponse(false)
@@ -1709,7 +1743,17 @@ export function ChatPanel({
                       ))}
                     </div>
                   )}
-                  {/* [Rest of message rendering...] */}
+                  
+                  {/* File Upload Prompt Component */}
+                  {msg.componentType === "file_upload_prompt" && msg.componentProps && (
+                    <div className="mt-3">
+                      <FileUploadPrompt
+                        promptContent={msg.componentProps}
+                        onFileUpload={handleFileUpload}
+                        onSkip={msg.componentProps.optional ? handleSkipUpload : undefined}
+                      />
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}
