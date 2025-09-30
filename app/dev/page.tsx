@@ -1,6 +1,6 @@
 "use client"
 
-import { SampleDataControls } from "@/components/dev/sample-data-controls"
+import { SampleDataControls } from "../../components/dev/sample-data-controls"
 
 export default function DevPage() {
   return (

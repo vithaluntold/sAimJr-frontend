@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { WorkflowSidebar } from "@/components/workflow-sidebar"
-import { ChatPanel } from "@/components/chat-panel"
-import { OutputPanel } from "@/components/output-panel"
+import { WorkflowSidebar } from "../../components/workflow-sidebar"
+import { ChatPanel } from "../../components/chat-panel"
+import { OutputPanel } from "../../components/output-panel"
 import { CompanyStorage } from "@/lib/company-storage"
 import type { Message, ChatSession, CompanyProfile, OutputContentType } from "@/lib/types"
 
