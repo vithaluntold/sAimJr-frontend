@@ -176,8 +176,8 @@ export default function LandingPage() {
                 <Image
                   src="/modern-ai-avatar.png"
                   alt="S(Ai)m Jr Avatar"
-                  layout="fill"
-                  objectFit="contain"
+                  fill
+                  style={{ objectFit: "contain" }}
                   priority
                   className="p-4 rounded-full"
                 />

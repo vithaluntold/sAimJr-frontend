@@ -18,11 +18,11 @@ interface DynamicSaimAvatarProps {
 }
 
 const avatarSources: Record<AvatarExpression, string> = {
-  greeting: "/saim-avatar-greeting.png",
-  confused: "/saim-avatar-confused.png", 
-  thinking: "/saim-avatar-thinking.png",
-  shrugging: "/saim-avatar-shrugging.png",
-  default: "/saim-avatar-default.png"
+  greeting: "/modern-ai-avatar.png", // Will use specific images once uploaded
+  confused: "/modern-ai-avatar.png", 
+  thinking: "/modern-ai-avatar.png",
+  shrugging: "/modern-ai-avatar.png",
+  default: "/modern-ai-avatar.png"
 }
 
 export function DynamicSaimAvatar({ 

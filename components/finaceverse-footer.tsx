@@ -15,7 +15,7 @@ export function FinACEverseFooter() {
         </span>
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-600">
-            {/* Brain/AI Logo SVG */}
+            {/* Temporary brain icon - replace finaceverse-logo.png with actual logo */}
             <svg
               width="16"
               height="16"
@@ -24,19 +24,18 @@ export function FinACEverseFooter() {
               xmlns="http://www.w3.org/2000/svg"
               className="text-white"
             >
-              {/* Brain-like circuit pattern */}
               <path
-                d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z"
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM12 20c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
                 fill="currentColor"
                 opacity="0.3"
               />
-              <circle cx="8" cy="9" r="1.5" fill="currentColor" />
-              <circle cx="16" cy="9" r="1.5" fill="currentColor" />
-              <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+              <circle cx="9" cy="9" r="1" fill="currentColor" />
+              <circle cx="15" cy="9" r="1" fill="currentColor" />
+              <circle cx="12" cy="13" r="1" fill="currentColor" />
               <path
-                d="M8 9l4 3m0 0l4-3M12 12v3"
+                d="M9 9l3 4m0 0l3-4"
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth="1"
                 strokeLinecap="round"
               />
             </svg>
