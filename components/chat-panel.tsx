@@ -1714,6 +1714,19 @@ export function ChatPanel({
                     className="h-7 w-7 self-start flex-shrink-0"
                   />
                 )}
+                {msg.sender === "user" && (
+                  <Avatar className="h-7 w-7 self-start flex-shrink-0">
+                    <AvatarImage src="/placeholder-user.jpg" alt="User" />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                      {companyProfile?.businessName 
+                        ? companyProfile.businessName.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()
+                        : businessProfile.businessName
+                          ? businessProfile.businessName.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()
+                          : "YU"
+                      }
+                    </AvatarFallback>
+                  </Avatar>
+                )}
                 <div
                   className={cn(
                     "p-3 rounded-xl shadow-md max-w-md md:max-w-lg",
