@@ -2,11 +2,11 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "./ui/button"
+import { Progress } from "./ui/progress"
+import { Card, CardContent } from "./ui/card"
 import { Upload, FileText, CheckCircle, AlertCircle, X } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "../lib/utils"
 
 interface FileUploadWithProgressProps {
   onUpload: (file: File) => Promise<void>

@@ -1,11 +1,11 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Card, CardContent } from '@/components/ui/card'
+import { Input } from './ui/input'
+import { Button } from './ui/button'
+import { Badge } from './ui/badge'
+import { Alert, AlertDescription } from './ui/alert'
+import { Card, CardContent } from './ui/card'
 import { CheckCircle, AlertCircle, Loader2, Edit3, ArrowRight, Info } from 'lucide-react'
 
 interface ValidationResult {

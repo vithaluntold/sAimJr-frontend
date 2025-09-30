@@ -1,8 +1,8 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "../ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
+import { Badge } from "../ui/badge"
 import { Database, Trash2, User, Building } from "lucide-react"
 import {
   initializeSampleData,
@@ -10,7 +10,7 @@ import {
   getSampleUser,
   SAMPLE_COMPANIES,
   SAMPLE_USER_ID,
-} from "@/lib/sample-data"
+} from "../../lib/sample-data"
 
 export function SampleDataControls() {
   const handleInitialize = () => {

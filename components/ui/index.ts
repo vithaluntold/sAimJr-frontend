@@ -42,7 +42,7 @@ export * from './collapsible'
 export * from './command'
 export * from './input-otp'
 export * from './sonner'
-export * from './toaster'
+// export * from './toaster' // Commented out due to conflict with sonner Toaster export
 export * from './use-toast'
 export * from './use-mobile'
 export * from './carousel'

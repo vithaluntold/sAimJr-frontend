@@ -1,6 +1,6 @@
 import type React from "react"
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
-import { CoaTable } from "@/components/coa-table"
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "./ui/card"
+import { CoaTable } from "./coa-table"
 import { BarChartHorizontalBig, FileText, Download, ListChecks, Settings2, Building2, History } from "lucide-react"
 import type {
   OutputContentType,
@@ -11,10 +11,10 @@ import type {
   TransactionRule,
   CompanyProfile,
   ProcessingRun,
-} from "@/lib/types"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+} from "../lib/types"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
+import { Button } from "./ui/button"
+import { Badge } from "./ui/badge"
 
 interface OutputPanelProps {
   content: {

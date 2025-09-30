@@ -2,10 +2,10 @@
 
 import type React from "react"
 import { useState, useRef, useEffect, type FormEvent } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { Button } from "./ui/button"
+import { Textarea } from "./ui/textarea"
+import { ScrollArea } from "./ui/scroll-area"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Send,
@@ -20,7 +20,7 @@ import {
   History,
   TrendingUp,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "../lib/utils"
 import type {
   Message,
   FileUploadPromptContent,
@@ -34,9 +34,9 @@ import type {
   TransactionRule,
   RuleCondition,
   FinalReportData,
-} from "@/lib/types"
-import APICompanyStorage, { CompanyStorage } from "@/lib/api-company-storage"
-import AISmartInput from "@/components/ai-smart-input"
+} from "../lib/types"
+import APICompanyStorage, { CompanyStorage } from "../lib/api-company-storage"
+import AISmartInput from "./ai-smart-input"
 
 const initialBusinessProfileQuestions = [
   {

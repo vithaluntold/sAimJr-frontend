@@ -2,11 +2,11 @@
 
 import type React from "react"
 import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "./ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { UploadCloud, FileText, Download, XCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
-import type { FileUploadPromptContent } from "@/lib/types"
+import { cn } from "../lib/utils"
+import type { FileUploadPromptContent } from "../lib/types"
 
 interface FileUploadPromptProps {
   promptContent: FileUploadPromptContent

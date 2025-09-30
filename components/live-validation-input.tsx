@@ -1,10 +1,10 @@
 "use client"
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Card, CardContent } from '@/components/ui/card'
+import { Input } from './ui/input'
+import { Badge } from './ui/badge'
+import { Alert, AlertDescription } from './ui/alert'
+import { Card, CardContent } from './ui/card'
 import { CheckCircle, AlertCircle, Loader2, Wifi, WifiOff, Edit3, ArrowRight } from 'lucide-react'
 
 interface ValidationResult {

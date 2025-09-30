@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "./ui/button"
+import { Input } from "./ui/input"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { Download, RefreshCw, Search } from "lucide-react"
-import type { ChartOfAccount } from "@/lib/types"
+import type { ChartOfAccount } from "../lib/types"
 
 interface CoaTableProps {
   data: ChartOfAccount[]
