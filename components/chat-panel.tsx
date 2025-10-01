@@ -847,7 +847,7 @@ export function ChatPanel({
           } else {
             promptContent = {
               title: "Upload Bank Statement",
-              description: "PDF, CSV, or XLSX format.",
+              description: "PDF, CSV, or XLSX format. Demo version supports up to 50 transactions.",
               fileType: "bank_statement",
               accept: ".pdf,.csv,.xlsx",
             }
