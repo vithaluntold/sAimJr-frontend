@@ -16,6 +16,7 @@ export type OutputContentType =
   | "rules"
   | "company_profile"
   | "processing_history"
+  | "categorization_results"
   | null
 
 export interface Message {

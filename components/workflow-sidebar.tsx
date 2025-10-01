@@ -12,7 +12,8 @@ const workflowSteps = [
   { id: 5, title: "Map Parties" },
   { id: 6, title: "Categorize Transactions" },
   { id: 7, title: "Handle Exceptions" },
-  { id: 8, title: "Generate Report" },
+  { id: 8, title: "Review Results" },
+  { id: 9, title: "Generate Report" },
 ]
 
 interface WorkflowSidebarProps {

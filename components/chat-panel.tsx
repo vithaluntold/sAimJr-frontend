@@ -35,10 +35,14 @@ import type {
   RuleCondition,
   FinalReportData,
 } from "../lib/types"
+import { CategorizationResultItem } from "../lib/enhanced-types"
+import { ContextualAICategorizer } from "../lib/contextual-ai-categorizer"
+import { ExportUtils } from "../lib/export-utils"
 import APICompanyStorage, { CompanyStorage } from "../lib/api-company-storage"
 import AISmartInput from "./ai-smart-input"
 import { FileUploadPrompt } from "./file-upload-prompt"
 import { DynamicSaimAvatar, type AvatarExpression } from "./dynamic-saim-avatar"
+import { AIValidationSocket } from "../lib/ai-validation-socket"
 
 const initialBusinessProfileQuestions = [
   {
@@ -54,6 +58,10 @@ const initialBusinessProfileQuestions = [
     text: "Which industry sector best describes your business? (e.g., Technology, Healthcare, Finance)",
   },
   { key: "location", text: "Where is your business located? (City, State, Country)" },
+  {
+    key: "companyType", 
+    text: "What type of company is this? (e.g., Private Limited, Public Limited, Partnership, Sole Proprietorship, LLP)"
+  },
   {
     key: "reportingFramework",
     text: "Which Financial Reporting Framework do you use? (e.g., IFRS, US GAAP, Local GAAP)",
@@ -102,6 +110,12 @@ export function ChatPanel({
   const [businessProfile, setBusinessProfile] = useState<Partial<CompanyProfile>>({})
   const [isSaimTyping, setIsSaimTyping] = useState(false)
 
+  // AI Validation WebSocket for real-time validation
+  const [aiValidationSocket] = useState(() => new AIValidationSocket(
+    (message) => console.log('🤖 AI WebSocket message:', message),
+    (error) => console.error('❌ AI WebSocket error:', error)
+  ))
+
   // Company and processing state
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(propCompanyProfile || null)
   const [currentRun, setCurrentRun] = useState<ProcessingRun | null>(null)
@@ -122,6 +136,10 @@ export function ChatPanel({
   const hasInitialized = useRef(false)
 
   useEffect(() => {
+    // Initialize AI Validation WebSocket for real-time validation
+    console.log('🚀 Initializing AI Validation WebSocket...')
+    aiValidationSocket.connect()
+    
     // Load existing company profile (only if not creating new company)
     if (!isNewCompany) {
       const existingProfile = CompanyStorage.getCompanyProfile()
@@ -131,7 +149,13 @@ export function ChatPanel({
         setAIContext(context)
       }
     }
-  }, [isNewCompany])
+    
+    // Cleanup on unmount
+    return () => {
+      console.log('🔌 Disconnecting AI Validation WebSocket...')
+      aiValidationSocket.disconnect()
+    }
+  }, [isNewCompany, aiValidationSocket])
 
   useEffect(() => {
     // Only add initial message once when component first mounts with empty messages
@@ -391,12 +415,17 @@ export function ChatPanel({
           setTimeout(() => proceedToNextStepPrompt(7), 2000)
         }
         break
-      case 8: // After Exception Handling
-        addSaimMessage("All exceptions resolved. Generating final report with insights...", [
+      case 8: // After Exception Handling - Review Results
+        addSaimMessage("All exceptions resolved! Ready to review your categorization results with AI insights.", [
+          { label: "Review Results", action: "review_categorization_results" },
+        ])
+        break
+      case 9: // After Review Results - Generate Report
+        addSaimMessage("Results reviewed and approved. Generating final report with insights...", [
           { label: "Generate Report", action: "generate_report" },
         ])
         break
-      case 9: // After Report Generation
+      case 10: // After Report Generation
         const rulesApplied = currentRun?.rulesApplied.length || 0
         addSaimMessage(
           `Run complete! Applied ${rulesApplied} rules. Historical data updated for better future predictions. What's next?`,
@@ -583,25 +612,18 @@ export function ChatPanel({
       const processingId = `validation_${Date.now()}`
       addSaimMessage("🤖 Validating and correcting your input...", undefined, undefined, undefined, true, Date.now(), 3, processingId)
       
-      // AI validation
-      fetch('/api/validate-input', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          field_name: currentQuestion.key,
-          user_input: currentInput,
-          context: {
-            step: "company_setup",
-            question_index: currentBPQuestionIndex,
-            business_profile: businessProfile
-          }
-        }),
-      })
-      .then(response => response.json())
-      .then(data => {
-        const validation = data.validation_result
+      // REAL-TIME AI VALIDATION via WebSocket (fast!)
+      aiValidationSocket.validateRealtime(
+        currentQuestion.key,
+        currentInput,
+        {
+          step: "company_setup",
+          question_index: currentBPQuestionIndex,
+          business_profile: businessProfile
+        }
+      )
+      .then(validation => {
+        console.log('✅ Real-time AI validation result:', validation)
         let finalValue = currentInput
         let validationMessage = ""
         
@@ -878,6 +900,61 @@ export function ChatPanel({
         commonAIProcess("Categorizing Transactions with AI predictions", 10, 6, sampleTransactions, "transactions")
         break
 
+      case "review_categorization_results":
+        // Generate sophisticated categorization results using the enhanced AI system
+        const mockTransactions = [
+          {
+            id: "tx1",
+            date: "2023-01-05",
+            description: "Amazon Web Services - Cloud Infrastructure",
+            amount: 150.75,
+            type: "DR" as const,
+            contact: "Amazon Web Services"
+          },
+          {
+            id: "tx2", 
+            date: "2023-01-10",
+            description: "Client Payment - Project X Consulting Services",
+            amount: 2500.0,
+            type: "CR" as const,
+            contact: "ABC Corp Client"
+          },
+          {
+            id: "tx3",
+            date: "2023-01-15", 
+            description: "Office Supplies - Staples Business Center",
+            amount: 89.32,
+            type: "DR" as const,
+            contact: "Staples Inc"
+          }
+        ]
+
+        // Use the sophisticated AI categorizer
+        const categorizer = new ContextualAICategorizer(companyProfile?.chartOfAccounts || [])
+        
+        commonAIProcess("Analyzing transactions with enhanced AI business intelligence", 8, 8)
+        
+        // Simulate categorization process
+        setTimeout(async () => {
+          const categorizationResults = await categorizer.categorizeTransactions(mockTransactions)
+          onShowOutput("categorization_results", categorizationResults)
+          
+          addSaimMessage("✨ Enhanced categorization complete! Review your results in the output panel. You can edit any categorizations and export the data.", [
+            { label: "Results Look Good", action: "approve_categorization_results" },
+            { label: "Need to Make Changes", action: "edit_categorization_results" }
+          ])
+        }, 8000)
+        break
+
+      case "approve_categorization_results":
+        addSaimMessage("Categorization results approved! All transaction patterns have been learned for future processing.")
+        proceedToNextStepPrompt(8)
+        break
+
+      case "edit_categorization_results":
+        addSaimMessage("You can edit individual transactions in the results panel. Click 'Save Changes' when you're satisfied with the categorization.")
+        break
+
       case "generate_report":
         if (!currentRun || !bankStatementPeriod) {
           addSaimMessage("Error: No active processing run found.")
@@ -891,7 +968,7 @@ export function ChatPanel({
           runId: currentRun.id,
           reportUrl: "/sample-report.pdf",
         }
-        commonAIProcess("Generating Final Report with AI insights", 6, 8, reportData, "final_report")
+        commonAIProcess("Generating Final Report with AI insights", 6, 9, reportData, "final_report")
         break
 
       case "use_ai_suggestion":
@@ -1665,7 +1742,7 @@ export function ChatPanel({
     )
 
   return (
-    <div className="flex-1 flex flex-col bg-transparent p-4 md:p-6 overflow-hidden chat-panel-background">
+    <div className="flex-1 flex flex-col bg-transparent p-4 md:p-6 pb-20 overflow-hidden chat-panel-background">
       <div className="flex items-center justify-between pb-4 border-b mb-4 relative z-10">
         <div>
           <h2 className="font-semibold text-lg md:text-xl">
@@ -1809,7 +1886,7 @@ export function ChatPanel({
       </ScrollArea>
 
       {/* [Input form remains the same] */}
-      <motion.form layout onSubmit={handleUserInput} className="mt-auto pt-4 flex items-center gap-2.5 relative z-10">
+      <motion.form layout onSubmit={handleUserInput} className="mt-auto pt-4 mb-4 flex items-center gap-2.5 relative z-10">
         <Button
           variant="ghost"
           size="icon"

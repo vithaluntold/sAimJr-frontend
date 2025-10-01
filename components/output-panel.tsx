@@ -12,6 +12,9 @@ import type {
   CompanyProfile,
   ProcessingRun,
 } from "../lib/types"
+import { CategorizationResultItem } from "../lib/enhanced-types"
+import { CategorizationResults } from "./categorization-results"
+import { ExportUtils } from "../lib/export-utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
@@ -305,6 +308,24 @@ export function OutputPanel({ content }: OutputPanelProps) {
         )}
       </div>
     )
+  } else if (content.type === "categorization_results" && content.data) {
+    title = "AI Categorization Results"
+    const results = content.data as CategorizationResultItem[]
+    const companyName = "Your Company" // This would come from company profile
+    
+    view = (
+      <CategorizationResults
+        results={results}
+        chartOfAccounts={[]} // This would come from company profile
+        companyName={companyName}
+        onExportCSV={(data) => ExportUtils.exportToCSV(data, companyName)}
+        onExportExcel={(data) => ExportUtils.exportToExcel(data, companyName)}
+        onSaveChanges={(data) => {
+          // Handle save changes - this would typically update the backend
+          console.log("Saving changes:", data)
+        }}
+      />
+    )
   }
 
   return (
@@ -315,6 +336,7 @@ export function OutputPanel({ content }: OutputPanelProps) {
             {content.type === "company_profile" && <Building2 className="h-5 w-5" />}
             {content.type === "processing_history" && <History className="h-5 w-5" />}
             {content.type === "rules" && <Settings2 className="h-5 w-5" />}
+            {content.type === "categorization_results" && <ListChecks className="h-5 w-5" />}
             {title}
           </CardTitle>
           {content.type === "transactions" && <CardDescription>Preview of categorized transactions.</CardDescription>}
@@ -323,6 +345,9 @@ export function OutputPanel({ content }: OutputPanelProps) {
           {content.type === "company_profile" && <CardDescription>Your business profile and setup.</CardDescription>}
           {content.type === "processing_history" && (
             <CardDescription>Historical bank statement processing.</CardDescription>
+          )}
+          {content.type === "categorization_results" && (
+            <CardDescription>Review AI categorization with business intelligence.</CardDescription>
           )}
         </CardHeader>
         <CardContent className="flex-grow flex flex-col overflow-y-auto">{view}</CardContent>
