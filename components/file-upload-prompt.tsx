@@ -23,6 +23,7 @@ export function FileUploadPrompt({ promptContent, onFileUpload, onSkip }: FileUp
   const [dragActive, setDragActive] = useState(false)
   const [transactionCount, setTransactionCount] = useState<number | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [isValidating, setIsValidating] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDrag = (e: React.DragEvent) => {
@@ -58,6 +59,7 @@ export function FileUploadPrompt({ promptContent, onFileUpload, onSkip }: FileUp
   const validateAndSetFile = async (file: File) => {
     setValidationError(null)
     setTransactionCount(null)
+    setIsValidating(true)
     
     // Only validate bank statement files
     if (promptContent.fileType === 'bank_statement') {
@@ -67,6 +69,7 @@ export function FileUploadPrompt({ promptContent, onFileUpload, onSkip }: FileUp
         
         if (count > LITE_TRANSACTION_LIMIT) {
           setValidationError(`This bank statement contains ${count} transactions. S(ai)m Jr Lite supports up to ${LITE_TRANSACTION_LIMIT} transactions for demonstration purposes.`)
+          setIsValidating(false)
           return
         }
       } catch (error) {
@@ -75,6 +78,7 @@ export function FileUploadPrompt({ promptContent, onFileUpload, onSkip }: FileUp
       }
     }
     
+    setIsValidating(false)
     setSelectedFile(file)
   }
 
@@ -103,6 +107,7 @@ export function FileUploadPrompt({ promptContent, onFileUpload, onSkip }: FileUp
     setSelectedFile(null)
     setTransactionCount(null)
     setValidationError(null)
+    setIsValidating(false)
     if (fileInputRef.current) {
       fileInputRef.current.value = "" // Reset file input
     }
@@ -157,7 +162,12 @@ export function FileUploadPrompt({ promptContent, onFileUpload, onSkip }: FileUp
                 <FileText className="h-5 w-5 text-primary" />
                 <div className="flex flex-col">
                   <span className="text-sm font-medium truncate max-w-[150px]">{selectedFile.name}</span>
-                  {transactionCount !== null && (
+                  {isValidating && (
+                    <span className="text-xs text-muted-foreground animate-pulse">
+                      Validating file...
+                    </span>
+                  )}
+                  {!isValidating && transactionCount !== null && (
                     <span className="text-xs text-muted-foreground">
                       {transactionCount} transaction{transactionCount !== 1 ? 's' : ''} detected
                     </span>
@@ -182,11 +192,11 @@ export function FileUploadPrompt({ promptContent, onFileUpload, onSkip }: FileUp
         <div className="flex gap-2 mt-2">
           <Button 
             onClick={handleUploadClick} 
-            disabled={!selectedFile || !!validationError} 
+            disabled={!selectedFile || !!validationError || isValidating} 
             size="sm" 
             className="flex-1"
           >
-            Upload File
+            {isValidating ? "Validating..." : "Upload File"}
           </Button>
           {promptContent.optional && onSkip && (
             <Button variant="outline" onClick={() => onSkip(promptContent.fileType)} size="sm" className="flex-1">
