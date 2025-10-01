@@ -124,15 +124,45 @@ export class AIValidationSocket {
   }
 
   private async fallbackHttpValidation(field_name: string, user_input: string, context: any) {
-    // Use the faster realtime endpoint instead of the slow regular validation
-    const response = await fetch('/api/ai-websocket', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ field_name, user_input, context })
-    })
+    console.log('🔗 HTTP validation fallback for:', { field_name, user_input })
     
-    const data = await response.json()
-    return data.validation_result
+    try {
+      // First try the validate-input endpoint
+      const response = await fetch('/api/validate-input', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          text: user_input, 
+          context: field_name 
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      
+      const result = await response.json()
+      console.log('✅ HTTP validation result:', result)
+      
+      // Transform the response to match expected format
+      return {
+        is_valid: result.isValid,
+        corrected_value: user_input, // Keep original if no specific correction
+        corrections_made: result.corrections || [],
+        suggestions: result.suggestions || [],
+        confidence: result.confidence || 0.9
+      }
+    } catch (error) {
+      console.error('❌ HTTP validation failed:', error)
+      // Return a valid response so validation doesn't break
+      return {
+        is_valid: true,
+        corrected_value: user_input,
+        corrections_made: [],
+        suggestions: [],
+        confidence: 0.5
+      }
+    }
   }
 
   send(message: any) {

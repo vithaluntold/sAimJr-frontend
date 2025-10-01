@@ -2,78 +2,115 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { field_name, user_input, context } = body
-
-    // Simple validation logic without hardcoded AI models
-    // Let the environment handle AI if available, otherwise use rule-based validation
+    const { text, context } = await request.json()
     
-    let validation_result = {
-      is_valid: true,
-      confidence: 0.9,
-      corrected_value: user_input,
-      corrections_made: [],
-      suggestions: [],
-      requires_clarification: false,
-      clarification_options: []
-    }
-
-    // Basic validation rules based on field type
-    if (field_name === 'companyName') {
-      // Company name validation
-      if (user_input.trim().length < 2) {
-        validation_result.is_valid = false
-        validation_result.requires_clarification = true
-        validation_result.clarification_options = ['Please provide a longer company name']
-      } else if (user_input.trim().length > 100) {
-        validation_result.corrected_value = user_input.trim().substring(0, 100)
-        validation_result.corrections_made.push({
-          original: user_input,
-          corrected: validation_result.corrected_value,
-          type: 'length_adjustment'
-        })
-      } else {
-        validation_result.suggestions.push('Company name looks good!')
-      }
-    } else if (field_name === 'businessNature') {
-      // Business nature validation
-      const commonTypes = ['consulting', 'retail', 'manufacturing', 'technology', 'healthcare', 'finance', 'education', 'services']
-      const lowerInput = user_input.toLowerCase()
-      const hasMatch = commonTypes.some(type => lowerInput.includes(type))
-      
-      if (hasMatch) {
-        validation_result.suggestions.push('Business type recognized')
-      } else {
-        validation_result.suggestions.push('Unique business type noted')
-      }
-    } else if (field_name === 'industrySector') {
-      // Industry sector validation
-      const sectors = ['technology', 'healthcare', 'finance', 'retail', 'manufacturing', 'consulting', 'education', 'government']
-      const lowerInput = user_input.toLowerCase()
-      const hasMatch = sectors.some(sector => lowerInput.includes(sector))
-      
-      if (hasMatch) {
-        validation_result.suggestions.push('Industry sector recognized')
-      } else {
-        validation_result.suggestions.push('Industry sector noted')
-      }
-    }
-
-    return NextResponse.json({ validation_result })
-  } catch (error) {
-    console.error('Validation API error:', error)
+    console.log('🤖 AI validation request:', { text: text?.substring(0, 50) + '...', context })
     
-    // Return a basic validation result on error
+    // Simulate AI validation with spell checking and suggestions
+    const response = await validateWithAI(text, context)
+    
     return NextResponse.json({
-      validation_result: {
-        is_valid: true,
-        confidence: 0.7,
-        corrected_value: '',
-        corrections_made: [],
-        suggestions: ['Input accepted'],
-        requires_clarification: false,
-        clarification_options: []
-      }
+      success: true,
+      isValid: response.isValid,
+      suggestions: response.suggestions,
+      corrections: response.corrections,
+      confidence: response.confidence
     })
+    
+  } catch (error) {
+    console.error('❌ AI validation error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'AI validation failed',
+      isValid: true, // Fallback to accepting input
+      suggestions: [],
+      corrections: [],
+      confidence: 0
+    }, { status: 500 })
+  }
+}
+
+async function validateWithAI(text: string, context?: string): Promise<{
+  isValid: boolean
+  suggestions: string[]
+  corrections: string[]
+  confidence: number
+}> {
+  // Real AI validation logic would go here
+  // For now, simulate with basic spell checking and business context validation
+  
+  await new Promise(resolve => setTimeout(resolve, 500)) // Simulate AI processing
+  
+  const suggestions: string[] = []
+  const corrections: string[] = []
+  let isValid = true
+  let confidence = 0.9
+  
+  if (!text || text.trim().length === 0) {
+    return { isValid: false, suggestions: ['Please enter some text'], corrections: [], confidence: 0 }
+  }
+  
+  // Basic spell checking simulation
+  const commonMisspellings: { [key: string]: string } = {
+    'teh': 'the',
+    'recieve': 'receive',
+    'seperate': 'separate',
+    'occurence': 'occurrence',
+    'definately': 'definitely',
+    'accomodation': 'accommodation',
+    'buisness': 'business',
+    'managment': 'management',
+    'finacial': 'financial',
+    'recoreded': 'recorded'
+  }
+  
+  // Check for misspellings
+  const words = text.toLowerCase().split(/\s+/)
+  for (const word of words) {
+    const cleanWord = word.replace(/[^a-z]/g, '')
+    if (commonMisspellings[cleanWord]) {
+      corrections.push(`Did you mean "${commonMisspellings[cleanWord]}" instead of "${cleanWord}"?`)
+      isValid = false
+      confidence = 0.6
+    }
+  }
+  
+  // Business context suggestions
+  if (context === 'company_name') {
+    if (text.length < 2) {
+      suggestions.push('Company name should be at least 2 characters long')
+      isValid = false
+    }
+    if (!/^[a-zA-Z0-9\s&.-]+$/.test(text)) {
+      suggestions.push('Company name contains invalid characters')
+      isValid = false
+    }
+  }
+  
+  if (context === 'business_nature') {
+    const businessTypes = ['consulting', 'retail', 'manufacturing', 'services', 'technology', 'healthcare', 'education', 'finance', 'real estate', 'construction']
+    const hasBusinessKeyword = businessTypes.some(type => text.toLowerCase().includes(type))
+    
+    if (!hasBusinessKeyword) {
+      suggestions.push('Consider being more specific about your business type (e.g., consulting, retail, manufacturing)')
+    }
+  }
+  
+  // Industry validation
+  if (context === 'industry') {
+    const validIndustries = ['technology', 'healthcare', 'finance', 'retail', 'manufacturing', 'education', 'consulting', 'real estate', 'construction', 'agriculture']
+    const isValidIndustry = validIndustries.some(industry => text.toLowerCase().includes(industry))
+    
+    if (!isValidIndustry) {
+      suggestions.push('Please specify a valid industry category')
+      confidence = 0.7
+    }
+  }
+  
+  return {
+    isValid,
+    suggestions,
+    corrections,
+    confidence
   }
 }
