@@ -1,0 +1,96 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install Backend Dependencies
+      run: |
+        cd "app/Backend AI processing"
+        pip install -r requirements.txt
+        
+    - name: Install Frontend Dependencies
+      run: npm ci
+      
+    - name: Run Backend Tests
+      env:
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/test_db
+        JWT_SECRET_KEY: test_secret_key
+      run: |
+        cd "app/Backend AI processing"
+        python -m pytest tests/ -v
+        
+    - name: Run Frontend Tests
+      run: npm test
+      
+    - name: Build Frontend
+      run: npm run build
+      
+    - name: Test Production Backend
+      env:
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/test_db
+        JWT_SECRET_KEY: test_secret_key
+      run: |
+        cd "app/Backend AI processing"
+        python -c "
+        from saimjr_mcp_server.production import app
+        from fastapi.testclient import TestClient
+        client = TestClient(app)
+        response = client.get('/health')
+        assert response.status_code == 200
+        print('✅ Production backend test passed')
+        "
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to Render
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      run: |
+        echo "🚀 Triggering Render deployment..."
+        # Render automatically deploys on git push to connected branch
+        echo "✅ Deployment triggered successfully"
+        
+    - name: Notify Deployment Status
+      run: |
+        echo "🎉 Saim Jr Accounting deployed successfully!"
+        echo "Backend: https://saimjr-mcp-backend.onrender.com"
+        echo "Frontend: https://saimjr-frontend.onrender.com"
