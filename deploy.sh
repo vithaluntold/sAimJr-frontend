@@ -11,7 +11,7 @@ export NODE_ENV=production
 export PYTHON_VERSION=3.11.9
 
 echo "📦 Installing Backend Dependencies..."
-cd "app/Backend AI processing"
+cd "backend"
 
 # Install Python dependencies
 pip install --no-cache-dir -r requirements.txt
@@ -30,7 +30,7 @@ fi
 
 # Install Frontend Dependencies
 echo "📦 Installing Frontend Dependencies..."
-cd ../../
+cd ../frontend
 npm install --production
 
 # Build Frontend
@@ -41,7 +41,7 @@ echo "🔧 Running Production Health Checks..."
 
 # Test Backend Health
 echo "Testing Backend Health..."
-cd "app/Backend AI processing"
+cd ../backend
 python -c "
 import asyncio
 from saimjr_mcp_server.production import app
@@ -50,7 +50,7 @@ print('✅ Backend health check passed')
 
 # Test Frontend Build
 echo "Testing Frontend Build..."
-cd ../../
+cd ../frontend
 if [ -d ".next" ]; then
     echo "✅ Frontend build successful"
 else
@@ -65,10 +65,11 @@ echo "Frontend: Ready to serve at $NEXT_PUBLIC_APP_URL"
 # Start services based on Render configuration
 if [ "$SERVICE_TYPE" = "backend" ]; then
     echo "🚀 Starting Backend Server..."
-    cd "app/Backend AI processing"
+    cd backend
     exec uvicorn saimjr_mcp_server.production:app --host 0.0.0.0 --port $PORT
 elif [ "$SERVICE_TYPE" = "frontend" ]; then
     echo "🚀 Starting Frontend Server..."
+    cd frontend
     exec npm start
 else
     echo "⚠️ No SERVICE_TYPE specified"
