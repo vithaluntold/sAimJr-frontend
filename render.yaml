@@ -3,8 +3,8 @@ services:
     name: saimjr-frontend
     env: node
     runtime: node-20.17.0
-    buildCommand: npm install && npm run build
-    startCommand: npm run start
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm run start
     envVars:
       - key: NODE_ENV
         value: production
