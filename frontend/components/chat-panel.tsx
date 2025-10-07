@@ -502,11 +502,10 @@ export function ChatPanel({
 
   const handleUserInput = (e: FormEvent) => {
     e.preventDefault()
-    if (!userInput.trim() || !isAwaitingResponse) return
+    if (!userInput.trim() || isInputDisabled) return
     const currentInput = userInput
     addUserMessage(currentInput)
     setUserInput("")
-    setIsAwaitingResponse(false)
 
     if (activeRuleCreation) {
       handleRuleCreationInput(currentInput)
@@ -1587,7 +1586,8 @@ export function ChatPanel({
     return [...baseCOA, ...industryCOA]
   }
 
-  const isInputDisabled = !isAwaitingResponse
+  // Only disable input when S(ai)m is actively typing/processing
+  const isInputDisabled = isSaimTyping || messages.some(msg => msg.isProcessing)
 
   return (
     <div className="flex-1 flex flex-col bg-transparent p-4 md:p-6 pb-20 overflow-hidden chat-panel-background">
