@@ -316,7 +316,6 @@ export function OutputPanel({ content }: OutputPanelProps) {
     view = (
       <CategorizationResults
         results={results}
-        chartOfAccounts={[]} // This would come from company profile
         companyName={companyName}
         onExportCSV={(data) => ExportUtils.exportToCSV(data, companyName)}
         onExportExcel={(data) => ExportUtils.exportToExcel(data, companyName)}

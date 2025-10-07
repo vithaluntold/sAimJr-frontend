@@ -100,7 +100,7 @@ export class LoadBalancer {
   // Health checking
   private async startHealthChecking(): Promise<void> {
     setInterval(async () => {
-      for (const [serviceName, instances] of this.services.entries()) {
+      for (const [, instances] of this.services.entries()) {
         for (const instance of instances) {
           await this.checkInstanceHealth(instance)
         }
@@ -129,7 +129,7 @@ export class LoadBalancer {
       } else {
         instance.health = "unhealthy"
       }
-    } catch (error) {
+    } catch {
       instance.health = "unhealthy"
       instance.responseTime = Date.now() - start
     }
@@ -138,8 +138,8 @@ export class LoadBalancer {
   }
 
   // Get load balancer statistics
-  getStats(): Record<string, any> {
-    const stats: Record<string, any> = {}
+  getStats(): Record<string, Record<string, unknown>> {
+    const stats: Record<string, Record<string, unknown>> = {}
 
     for (const [serviceName, instances] of this.services.entries()) {
       const healthy = instances.filter((i) => i.health === "healthy").length

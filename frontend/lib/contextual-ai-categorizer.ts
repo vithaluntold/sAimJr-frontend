@@ -1,6 +1,14 @@
 import { CategorizationResultItem, BusinessContext, PatternMatchResult } from './enhanced-types'
 import type { ChartOfAccount } from './types'
 
+// Transaction interface for categorization methods
+interface TransactionInput {
+  type: string
+  amount: number
+  description: string
+  contact?: string
+}
+
 /**
  * Enhanced AI Transaction Categorizer with Business Intelligence
  * Implements sophisticated categorization with business context analysis,
@@ -79,7 +87,7 @@ export class ContextualAICategorizer {
     // Infer business nature from transaction patterns
     const businessNature = this.inferBusinessNature(transaction)
     const relationshipType = this.inferRelationshipType(transaction, businessNature)
-    const industry = this.inferIndustry(transaction, businessNature)
+    const industry = this.inferIndustry(transaction)
 
     const context: BusinessContext = {
       contactName: contact,
@@ -138,9 +146,6 @@ export class ContextualAICategorizer {
     businessContext: BusinessContext,
     patterns: PatternMatchResult[]
   ) {
-    // Enhanced AI prompt with business context
-    const enhancedPrompt = this.buildEnhancedPrompt(transaction, businessContext, patterns)
-    
     // Simulate AI categorization with sophisticated logic
     const baseMatch = this.findBestAccountMatch(transaction, businessContext)
     
@@ -186,7 +191,7 @@ export class ContextualAICategorizer {
    * Build enhanced AI prompt with business context
    */
   private buildEnhancedPrompt(
-    transaction: any,
+    transaction: { type: string; amount: number; description: string; contact?: string },
     businessContext: BusinessContext,
     patterns: PatternMatchResult[]
   ): string {
@@ -214,7 +219,7 @@ Consider business relationship context, transaction nature, and historical patte
    * Find best account match using business context
    */
   private findBestAccountMatch(
-    transaction: any,
+    transaction: TransactionInput,
     businessContext: BusinessContext
   ): { accountId: string; accountName: string; confidence: number } {
     const description = transaction.description.toLowerCase()
@@ -274,10 +279,10 @@ Consider business relationship context, transaction nature, and historical patte
    * Generate enhanced reasoning with business intelligence
    */
   private generateEnhancedReasoning(
-    transaction: any,
+    transaction: TransactionInput,
     businessContext: BusinessContext,
     patterns: PatternMatchResult[],
-    baseMatch: any,
+    baseMatch: { accountId: string; accountName: string; confidence: number },
     confidence: number
   ): string {
     const reasons: string[] = []
@@ -317,7 +322,7 @@ Consider business relationship context, transaction nature, and historical patte
     return words.slice(0, 2).join(' ') || 'Unknown Contact'
   }
 
-  private inferBusinessNature(transaction: any): string {
+  private inferBusinessNature(transaction: TransactionInput): string {
     const desc = transaction.description.toLowerCase()
     
     if (desc.includes('payment') || desc.includes('invoice') || desc.includes('bill')) {
@@ -335,7 +340,7 @@ Consider business relationship context, transaction nature, and historical patte
     return 'Business Partner'
   }
 
-  private inferRelationshipType(transaction: any, businessNature: string): string {
+  private inferRelationshipType(transaction: TransactionInput, businessNature: string): string {
     if (businessNature.includes('Supplier') || businessNature.includes('Vendor')) {
       return 'Vendor Relationship'
     } else if (businessNature.includes('Customer')) {
@@ -346,7 +351,7 @@ Consider business relationship context, transaction nature, and historical patte
     return 'Business Relationship'
   }
 
-  private inferIndustry(transaction: any, businessNature: string): string {
+  private inferIndustry(transaction: TransactionInput): string {
     const desc = transaction.description.toLowerCase()
     
     if (desc.includes('tech') || desc.includes('software') || desc.includes('IT')) {
@@ -382,7 +387,7 @@ Consider business relationship context, transaction nature, and historical patte
     return keywords
   }
 
-  private calculateBusinessContextConfidence(transaction: any): number {
+  private calculateBusinessContextConfidence(transaction: TransactionInput): number {
     let confidence = 0.5
     
     // More descriptive transactions get higher confidence

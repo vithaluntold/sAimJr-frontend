@@ -66,6 +66,18 @@ export interface AccountCategoryPattern {
   consistencyScore: number
 }
 
+// Contact Summary for UI Analytics
+export interface ContactSummary {
+  contactName: string
+  businessNature: string
+  relationshipType: string
+  transactionCount: number
+  totalAmount: number
+  avgConfidence: number
+  warningCount: number
+  transactions: CategorizationResultItem[]
+}
+
 // Categorization Results Item for UI
 export interface CategorizationResultItem {
   id: string
@@ -78,5 +90,5 @@ export interface CategorizationResultItem {
   categorization: TransactionCategorization
   patterns: PatternMatchResult[]
   isEdited?: boolean
-  originalCategorization?: any
+  originalCategorization?: TransactionCategorization
 }

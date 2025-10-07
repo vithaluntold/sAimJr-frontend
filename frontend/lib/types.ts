@@ -19,11 +19,20 @@ export type OutputContentType =
   | "categorization_results"
   | null
 
+// Union type for message option payloads
+export type MessagePayload = 
+  | string 
+  | TransactionException
+  | { exception: TransactionException; accountName?: string; accountId?: string }
+  | { exception: TransactionException; suggestion: string }
+  | { accountId: string; accountName: string }
+  | { id?: string; [key: string]: unknown }
+
 export interface Message {
   id: string
   sender: "user" | "saim"
   text?: string
-  options?: { label: string; action: string; payload?: any }[]
+  options?: { label: string; action: string; payload?: MessagePayload }[]
   componentType?: "file_upload_prompt"
   componentProps?: FileUploadPromptContent
   isProcessing?: boolean
@@ -312,7 +321,7 @@ export interface TokenTransaction {
   description: string
   processingRunId?: string // If related to a processing run
   createdAt: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, string | number | boolean>
 }
 
 export interface TokenPackage {
