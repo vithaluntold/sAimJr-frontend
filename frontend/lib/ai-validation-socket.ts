@@ -1,16 +1,37 @@
 "use client"
 
+interface ValidationMessage {
+  id: string
+  type: string
+  field_name?: string
+  user_input?: string
+  context?: string
+  data?: {
+    field_name: string
+    user_input: string
+    context?: string
+  }
+}
+
+interface ValidationResult {
+  success: boolean
+  isValid: boolean
+  suggestions: string[]
+  corrections: string[]
+  confidence: number
+}
+
 export class AIValidationSocket {
   private ws: WebSocket | null = null
-  private messageQueue: any[] = []
-  private pendingRequests = new Map<string, (result: any) => void>()
+  private messageQueue: ValidationMessage[] = []
+  private pendingRequests = new Map<string, (result: ValidationResult) => void>()
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
   private reconnectDelay = 1000
 
   constructor(
-    private onMessage: (message: any) => void,
-    private onError: (error: any) => void
+    private onMessage: (message: ValidationResult) => void,
+    private onError: (error: Error) => void
   ) {}
 
   connect() {
@@ -56,7 +77,7 @@ export class AIValidationSocket {
 
       this.ws.onerror = (error) => {
         console.error('❌ AI WebSocket error:', error)
-        this.onError(error)
+        this.onError(new Error('WebSocket error'))
       }
 
       this.ws.onclose = (event) => {
@@ -88,7 +109,7 @@ export class AIValidationSocket {
     this.ws = null
   }
 
-  async validateRealtime(field_name: string, user_input: string, context: any): Promise<any> {
+  async validateRealtime(field_name: string, user_input: string, context?: string): Promise<ValidationResult> {
     return new Promise(async (resolve, reject) => {
       const id = `validation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       
@@ -108,7 +129,7 @@ export class AIValidationSocket {
         setTimeout(() => {
           if (this.pendingRequests.has(id)) {
             this.pendingRequests.delete(id)
-            this.fallbackHttpValidation(field_name, user_input, context).then(resolve).catch(reject)
+            this.fallbackHttpValidation(field_name, user_input).then(resolve).catch(reject)
           }
         }, 5000)
         
@@ -116,7 +137,7 @@ export class AIValidationSocket {
         // Fallback to HTTP validation
         console.log('🔄 Using HTTP fallback for validation:', user_input)
         try {
-          const result = await this.fallbackHttpValidation(field_name, user_input, context)
+          const result = await this.fallbackHttpValidation(field_name, user_input)
           resolve(result)
         } catch (error) {
           reject(error)
@@ -125,7 +146,7 @@ export class AIValidationSocket {
     })
   }
 
-  private async fallbackHttpValidation(field_name: string, user_input: string, context: any) {
+  private async fallbackHttpValidation(field_name: string, user_input: string): Promise<ValidationResult> {
     console.log('🔗 HTTP validation fallback for:', { field_name, user_input })
     
     try {
@@ -153,9 +174,9 @@ export class AIValidationSocket {
       
       // Transform the response to match expected format
       return {
-        is_valid: result.isValid,
-        corrected_value: user_input, // Keep original if no specific correction
-        corrections_made: result.corrections || [],
+        success: true,
+        isValid: result.isValid,
+        corrections: result.corrections || [],
         suggestions: result.suggestions || [],
         confidence: result.confidence || 0.9
       }
@@ -163,16 +184,16 @@ export class AIValidationSocket {
       console.error('❌ HTTP validation failed:', error)
       // Return a valid response so validation doesn't break
       return {
-        is_valid: true,
-        corrected_value: user_input,
-        corrections_made: [],
+        success: false,
+        isValid: true,
+        corrections: [],
         suggestions: [],
         confidence: 0.5
       }
     }
   }
 
-  send(message: any) {
+  send(message: ValidationMessage) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message))
     } else {

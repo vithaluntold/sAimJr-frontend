@@ -1,5 +1,17 @@
 import { ChartOfAccount } from './types'
 
+interface BusinessContext {
+  companyName: string
+  industry: string
+  companyType: string
+  location: string
+  businessNature: string
+  reportingFramework?: string
+  tax?: string
+  size?: string
+  [key: string]: string | undefined
+}
+
 export class IntelligentCoAGenerator {
   private static instance: IntelligentCoAGenerator
   
@@ -10,7 +22,7 @@ export class IntelligentCoAGenerator {
     return IntelligentCoAGenerator.instance
   }
 
-  public async generateContextualChartOfAccounts(businessContext: any): Promise<ChartOfAccount[]> {
+  public async generateContextualChartOfAccounts(businessContext: BusinessContext): Promise<ChartOfAccount[]> {
     console.log('🤖 PURE AI GENERATION - NO HARDCODED FALLBACKS!')
     console.log('📋 Business Context:', businessContext)
     
@@ -26,7 +38,7 @@ export class IntelligentCoAGenerator {
     return []
   }
 
-  private async tryAIGeneration(context: any): Promise<ChartOfAccount[]> {
+  private async tryAIGeneration(context: BusinessContext): Promise<ChartOfAccount[]> {
     try {
       console.log('🔥 ATTEMPTING AI GENERATION FOR:', {
         location: context.location,

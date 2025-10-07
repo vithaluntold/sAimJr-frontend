@@ -2,9 +2,12 @@
 
 ## 📁 **Proposed Backend Structure**
 
-```
-backend/
-├── main.py                     # FastAPI app entry point
+```text
+backend/```
+
+### **1. AI Processing Endpoints (SECURE)**
+
+```python─ main.py                     # FastAPI app entry point
 ├── requirements.txt            # Python dependencies
 ├── Dockerfile                  # Container configuration
 ├── .env                       # Environment variables
@@ -313,18 +316,21 @@ LOG_LEVEL=INFO
 
 ## 📋 **Migration Plan Summary**
 
-**Phase 1: Backend Setup**
-1. ✅ Design FastAPI structure 
+## Phase 1: Backend Setup
+
+1. ✅ Design FastAPI structure
 2. ⏳ Create backend API endpoints
 3. ⏳ Implement AI services (secure)
 4. ⏳ Add database models & CRUD
 
-**Phase 2: Frontend Refactor**  
+## Phase 2: Frontend Refactor
+
 1. ⏳ Remove business logic from frontend
 2. ⏳ Replace with API client calls
 3. ⏳ Update components to use backend
 
-**Phase 3: Security & Production**
+## Phase 3: Security & Production
+
 1. ⏳ Add authentication & rate limiting
 2. ⏳ Deploy backend infrastructure
 3. ⏳ Performance optimization

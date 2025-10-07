@@ -27,7 +27,7 @@ interface AISmartInputProps {
   label: string
   value: string
   onChange: (value: string) => void
-  context?: Record<string, any>
+  context?: Record<string, string | number | boolean>
   placeholder?: string
   disabled?: boolean
   className?: string
@@ -273,7 +273,7 @@ const AISmartInput: React.FC<AISmartInputProps> = ({
               </div>
               
               <p className="text-sm text-yellow-700">
-                We found multiple possible meanings for "{displayValue}". Please select the correct one:
+                We found multiple possible meanings for &quot;{displayValue}&quot;. Please select the correct one:
               </p>
               
               <div className="flex flex-wrap gap-2">
