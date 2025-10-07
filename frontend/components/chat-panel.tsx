@@ -157,6 +157,18 @@ export function ChatPanel({
     }
   }, [isNewCompany, aiValidationSocket])
 
+  // Fallback to ensure input is never permanently disabled
+  useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      if (isSaimTyping) {
+        console.log('🐛 Fallback: Forcing isSaimTyping to false')
+        setIsSaimTyping(false)
+      }
+    }, 5000) // 5 second fallback
+    
+    return () => clearTimeout(fallbackTimer)
+  }, [isSaimTyping])
+
   useEffect(() => {
     // Only add initial message once when component first mounts with empty messages
     if (messages.length === 0 && !hasInitialized.current && !isSaimTyping) {
@@ -1586,8 +1598,17 @@ export function ChatPanel({
     return [...baseCOA, ...industryCOA]
   }
 
-  // Only disable input when S(ai)m is actively typing/processing
-  const isInputDisabled = isSaimTyping || messages.some(msg => msg.isProcessing)
+  // Force input to be enabled unless there's active processing
+  const hasProcessingMessages = messages.some(msg => msg.isProcessing)
+  const isInputDisabled = hasProcessingMessages
+  
+  // Debug logging
+  console.log('🐛 Input Debug:', { 
+    isInputDisabled, 
+    isSaimTyping, 
+    hasProcessingMessages,
+    totalMessages: messages.length 
+  })
 
   return (
     <div className="flex-1 flex flex-col bg-transparent p-4 md:p-6 pb-20 overflow-hidden chat-panel-background">
