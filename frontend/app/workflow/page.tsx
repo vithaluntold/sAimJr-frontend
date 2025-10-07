@@ -5,10 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { WorkflowSidebar } from "../../components/workflow-sidebar"
 import { ChatPanel } from "../../components/chat-panel"
 import { OutputPanel } from "../../components/output-panel"
-import CompleteWorkflow from "../../components/workflow/complete-workflow"
 import { CompanyStorage } from "../../lib/company-storage"
 import type { Message, ChatSession, CompanyProfile, OutputContentType } from "../../lib/types"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
 export default function SaimJrWorkflowPage() {
   const router = useRouter()
@@ -169,44 +167,29 @@ export default function SaimJrWorkflowPage() {
 
   return (
     <div className="h-screen w-screen flex bg-background font-sans">
-      <Tabs defaultValue="chat" className="flex-1 flex flex-col">
-        <div className="border-b px-4 py-2">
-          <TabsList>
-            <TabsTrigger value="chat">Chat Interface</TabsTrigger>
-            <TabsTrigger value="complete">Complete Workflow (New)</TabsTrigger>
-          </TabsList>
-        </div>
-        
-        <TabsContent value="chat" className="flex-1 flex">
-          {/* Left Sidebar: Workflow Steps */}
-          <WorkflowSidebar
-            currentStep={currentStep}
-            completedSteps={completedSteps}
-            companyName={companyProfile?.businessName}
-          />
+      {/* Left Sidebar: Workflow Steps */}
+      <WorkflowSidebar
+        currentStep={currentStep}
+        completedSteps={completedSteps}
+        companyName={companyProfile?.businessName}
+      />
 
-          {/* Center Panel: Chat Interface */}
-          <main className="flex-1 flex flex-col overflow-hidden">
-            <ChatPanel
-              currentStep={currentStep}
-              onStepComplete={handleStepComplete}
-              onShowOutput={handleShowOutput}
-              messages={messages}
-              setMessages={handleMessagesUpdate}
-              companyProfile={companyProfile}
-              onCompanyCreated={handleCompanyCreated}
-              isNewCompany={isNewCompany}
-            />
-          </main>
+      {/* Center Panel: Chat Interface */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        <ChatPanel
+          currentStep={currentStep}
+          onStepComplete={handleStepComplete}
+          onShowOutput={handleShowOutput}
+          messages={messages}
+          setMessages={handleMessagesUpdate}
+          companyProfile={companyProfile}
+          onCompanyCreated={handleCompanyCreated}
+          isNewCompany={isNewCompany}
+        />
+      </main>
 
-          {/* Right Sidebar: Outputs */}
-          <OutputPanel content={outputContent} />
-        </TabsContent>
-        
-        <TabsContent value="complete" className="flex-1">
-          <CompleteWorkflow />
-        </TabsContent>
-      </Tabs>
+      {/* Right Sidebar: Outputs */}
+      <OutputPanel content={outputContent} />
     </div>
   )
 }

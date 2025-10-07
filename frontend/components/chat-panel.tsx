@@ -1594,20 +1594,24 @@ export function ChatPanel({
       <div className="flex items-center justify-between pb-4 border-b mb-4 relative z-10">
         <div>
           <h2 className="font-semibold text-lg md:text-xl">
-            Chat with S(ai)m Jr
+            S(ai)m Jr - Live AI Assistant
             {companyProfile && (
               <span className="text-sm font-normal text-muted-foreground ml-2">({companyProfile.businessName})</span>
             )}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Step {currentStep}: {workflowStepsConfig.find((s) => s.id === currentStep)?.title || "Processing..."}
-            {currentRun && <span className="ml-2 text-xs text-primary">Run: {currentRun.fileName}</span>}
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              Live WebSocket Connected
+            </span>
+            • Step {currentStep}: {workflowStepsConfig.find((s) => s.id === currentStep)?.title || "Processing..."}
+            {currentRun && <span className="ml-2 text-xs text-primary">• Run: {currentRun.fileName}</span>}
             {activeRuleCreation && (
-              <span className="ml-2 text-xs text-primary">(Creating Rule: {activeRuleCreation.step})</span>
+              <span className="ml-2 text-xs text-primary">• Creating Rule: {activeRuleCreation.step}</span>
             )}
             {aiContext && (
               <span className="ml-2 text-xs text-emerald-600">
-                AI: {aiContext.historicalTransactions.length} transactions learned
+                • AI: {aiContext.historicalTransactions.length} transactions learned
               </span>
             )}
           </p>
