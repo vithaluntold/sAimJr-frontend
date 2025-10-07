@@ -1635,6 +1635,17 @@ export function ChatPanel({
                 • AI: {aiContext.historicalTransactions.length} transactions learned
               </span>
             )}
+            {isInputDisabled && (
+              <button 
+                onClick={() => {
+                  setIsSaimTyping(false)
+                  setMessages(prev => prev.map(msg => ({ ...msg, isProcessing: false })))
+                }}
+                className="ml-2 text-xs text-red-600 underline cursor-pointer"
+              >
+                • Input Disabled - Click to Force Enable
+              </button>
+            )}
           </p>
         </div>
         <DynamicSaimAvatar 
