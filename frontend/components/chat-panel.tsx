@@ -157,17 +157,28 @@ export function ChatPanel({
     }
   }, [isNewCompany, aiValidationSocket])
 
-  // Fallback to ensure input is never permanently disabled
+  // Cleanup stuck processing messages and typing states
   useEffect(() => {
-    const fallbackTimer = setTimeout(() => {
+    const cleanupTimer = setTimeout(() => {
+      // Clear any stuck processing messages older than 10 seconds
+      setMessages(prev => prev.map(msg => {
+        if (msg.isProcessing && msg.processingStartTime && 
+            Date.now() - msg.processingStartTime > 10000) {
+          console.log('🧹 Cleaning up stuck processing message:', msg.id)
+          return { ...msg, isProcessing: false, text: msg.text + ' (Completed)' }
+        }
+        return msg
+      }))
+      
+      // Clear stuck typing state
       if (isSaimTyping) {
-        console.log('🐛 Fallback: Forcing isSaimTyping to false')
+        console.log('🧹 Clearing stuck typing state')
         setIsSaimTyping(false)
       }
-    }, 5000) // 5 second fallback
+    }, 10000) // 10 second cleanup
     
-    return () => clearTimeout(fallbackTimer)
-  }, [isSaimTyping])
+    return () => clearTimeout(cleanupTimer)
+  }, [messages, isSaimTyping])
 
   useEffect(() => {
     // Only add initial message once when component first mounts with empty messages
@@ -1598,15 +1609,14 @@ export function ChatPanel({
     return [...baseCOA, ...industryCOA]
   }
 
-  // Force input to be enabled unless there's active processing
-  const hasProcessingMessages = messages.some(msg => msg.isProcessing)
-  const isInputDisabled = hasProcessingMessages
+  // Force input to always be enabled - remove all artificial restrictions
+  const isInputDisabled = false
   
   // Debug logging
-  console.log('🐛 Input Debug:', { 
+  console.log('🐛 Input Debug - ALWAYS ENABLED:', { 
     isInputDisabled, 
     isSaimTyping, 
-    hasProcessingMessages,
+    processingMessages: messages.filter(msg => msg.isProcessing).length,
     totalMessages: messages.length 
   })
 
