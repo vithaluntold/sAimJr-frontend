@@ -35,11 +35,11 @@ import type {
   RuleCondition,
   FinalReportData,
 } from "../lib/types"
-import { CategorizationResultItem } from "../lib/enhanced-types"
+// import { CategorizationResultItem } from "../lib/enhanced-types" // Unused import
 import { ContextualAICategorizer } from "../lib/contextual-ai-categorizer"
-import { ExportUtils } from "../lib/export-utils"
-import APICompanyStorage, { CompanyStorage } from "../lib/api-company-storage"
-import AISmartInput from "./ai-smart-input"
+// import { ExportUtils } from "../lib/export-utils" // Unused import
+import { CompanyStorage } from "../lib/api-company-storage"
+// import AISmartInput from "./ai-smart-input" // Unused import
 import { FileUploadPrompt } from "./file-upload-prompt"
 import { DynamicSaimAvatar, type AvatarExpression } from "./dynamic-saim-avatar"
 import { AIValidationSocket } from "../lib/ai-validation-socket"
@@ -197,7 +197,7 @@ export function ChatPanel({
         })
       }, 1000)
     }
-  }, [companyProfile?.isSetupComplete, companyProfile?.businessName])
+  }, [companyProfile?.isSetupComplete, companyProfile?.businessName, isSaimTyping, messages.length, setMessages])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -537,7 +537,7 @@ export function ChatPanel({
         setAwaitingDateInput(null)
 
         // Start processing run
-        const _run = startNewProcessingRun(
+        startNewProcessingRun(
           currentFileForPeriod.name,
           currentFileForPeriod.type,
           finalPeriod.from,
@@ -624,12 +624,12 @@ export function ChatPanel({
       )
       .then(validation => {
         console.log('✅ Real-time AI validation result:', validation)
-        let finalValue = currentInput
+        // const finalValue = currentInput // Unused variable
         let validationMessage = ""
         
         if (validation.corrections_made.length > 0) {
           // Don't auto-apply corrections - suggest them instead
-          const corrections = validation.corrections_made.map((c: any) => 
+          const corrections = validation.corrections_made.map((c: { original: string; corrected: string; type: string }) => 
             `${c.original} → ${c.corrected} (${c.type})`
           ).join(", ")
           validationMessage = `💡 I have suggestions: ${corrections}. Would you like to use "${validation.corrected_value}" or keep "${currentInput}"?`
@@ -1257,151 +1257,6 @@ export function ChatPanel({
     }
   }
 
-  const _handleActualFileUpload = (fileType: string, file: File) => {
-    addUserMessage(`Uploaded ${file.name} for ${fileType.replace("_", " ")}`)
-    setIsAwaitingResponse(false)
-
-    if (fileType === "bank_statement") {
-      setCurrentFileForPeriod(file)
-      handleSaimResponse(() => {
-        addSaimMessage(
-          `Selected ${file.name}. What's the 'From' date for this statement? (YYYY-MM-DD)`,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          "from",
-        )
-        setAwaitingDateInput("from")
-        setIsAwaitingResponse(true)
-      })
-      return
-    }
-
-    const processingMessageId = String(Date.now() + `_processing_${fileType}`)
-    const estimatedDuration = 3
-    handleSaimResponse(() => {
-      addSaimMessage(
-        `Processing ${fileType.replace("_", " ")} file: ${file.name}...`,
-        undefined,
-        undefined,
-        undefined,
-        true,
-        Date.now(),
-        estimatedDuration,
-        processingMessageId,
-      )
-    }, 200)
-
-    setTimeout(() => {
-      setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.id === processingMessageId
-            ? { ...msg, text: `${fileType.replace("_", " ")} file "${file.name}" processed.`, isProcessing: false }
-            : msg,
-        ),
-      )
-
-      if (fileType === "coa" && companyProfile) {
-        // Simulate parsing uploaded COA
-        const uploadedCOA: ChartOfAccount[] = [
-          { code: "UPLOADED", name: `From ${file.name}`, category: "Uploaded", class: "Various", statement: "Various" },
-          // In real app, would parse the actual file
-        ]
-        onShowOutput("coa", uploadedCOA)
-
-        // Update company profile
-        const updatedProfile = {
-          ...companyProfile,
-          chartOfAccounts: uploadedCOA,
-          updatedAt: new Date().toISOString(),
-        }
-        CompanyStorage.saveCompanyProfile(updatedProfile)
-        setCompanyProfile(updatedProfile)
-
-        proceedToNextStepPrompt(2)
-      } else if (fileType === "contacts" && companyProfile) {
-        // Process contacts with AI
-        const formData = new FormData()
-        formData.append('file', file)
-        
-        fetch(`/api/companies/${companyProfile.id}/process-contacts`, {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            const result = data.processing_result
-            const processedContacts = result.processed_contacts || []
-            const duplicatesCount = result.duplicates_detected?.length || 0
-            const issuesCount = result.data_quality_issues?.length || 0
-            
-            setMessages((prevMessages) =>
-              prevMessages.map((msg) =>
-                msg.id === processingMessageId
-                  ? { 
-                      ...msg, 
-                      text: `🎯 AI processed ${processedContacts.length} contacts from "${file.name}"${duplicatesCount > 0 ? `, detected ${duplicatesCount} duplicates` : ''}${issuesCount > 0 ? `, found ${issuesCount} data quality issues` : ''}. Names standardized, emails validated, contact types classified.`,
-                      isProcessing: false 
-                    }
-                  : msg,
-              ),
-            )
-            
-            // Convert processed contacts to the format expected by the app
-            const uploadedContacts = processedContacts.map((contact: any) => ({
-              id: contact.id,
-              name: contact.name,
-              type: contact.type as "Client" | "Vendor" | "Employee" | "Other",
-              email: contact.email,
-              phone: contact.phone,
-              address: contact.address,
-              industry: contact.industry,
-              aiProcessed: true,
-              confidence: contact.confidence,
-              corrections: contact.corrections_made
-            }))
-            
-            onShowOutput("contacts", uploadedContacts)
-
-            // Update company profile
-            const updatedProfile = {
-              ...companyProfile,
-              contacts: [...companyProfile.contacts, ...uploadedContacts],
-              updatedAt: new Date().toISOString(),
-            }
-            CompanyStorage.saveCompanyProfile(updatedProfile)
-            setCompanyProfile(updatedProfile)
-
-            proceedToNextStepPrompt(3)
-          } else {
-            throw new Error('AI processing failed')
-          }
-        })
-        .catch(error => {
-          console.error('AI contacts processing error:', error)
-          // Fallback to original logic
-          const uploadedContacts = [{ id: `contact_${Date.now()}`, name: `From ${file.name}`, type: "Client" as const }]
-          onShowOutput("contacts", uploadedContacts)
-
-          const updatedProfile = {
-            ...companyProfile,
-            contacts: [...companyProfile.contacts, ...uploadedContacts],
-            updatedAt: new Date().toISOString(),
-          }
-          CompanyStorage.saveCompanyProfile(updatedProfile)
-          setCompanyProfile(updatedProfile)
-
-          proceedToNextStepPrompt(3)
-        })
-      }
-    }, estimatedDuration * 1000)
-  }
-
   const handleFileUpload = (fileType: string, file: File) => {
     addUserMessage(`Uploaded ${file.name} (${fileType})`)
     setIsAwaitingResponse(true)
@@ -1732,14 +1587,7 @@ export function ChatPanel({
     return [...baseCOA, ...industryCOA]
   }
 
-  const isInputDisabled =
-    !isAwaitingResponse ||
-    !(
-      (currentStep === 1 && !companyProfile?.isSetupComplete) ||
-      awaitingDateInput ||
-      activeRuleCreation?.step === "name" ||
-      activeRuleCreation?.step === "condition_value"
-    )
+  const isInputDisabled = !isAwaitingResponse
 
   return (
     <div className="flex-1 flex flex-col bg-transparent p-4 md:p-6 pb-20 overflow-hidden chat-panel-background">
@@ -1836,7 +1684,7 @@ export function ChatPanel({
                     <div className="flex flex-wrap gap-2 mt-2.5">
                       {msg.options.map((opt) => (
                         <Button
-                          key={opt.action + (opt.payload?.id || opt.label)}
+                          key={opt.action + (typeof opt.payload === 'object' && opt.payload && 'id' in opt.payload ? opt.payload.id : opt.label)}
                           size="sm"
                           variant={msg.sender === "saim" ? "outline" : "default"}
                           className={cn(
