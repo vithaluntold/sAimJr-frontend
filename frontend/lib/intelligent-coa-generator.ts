@@ -118,13 +118,17 @@ Produce a complete CoA tailored to the input profile. Use the profile as *decisi
 - Framework accounts included if reportingFramework requires.
 - Industry-specific items included, irrelevant excluded.`
 
-      const response = await fetch('/api/ai-chat', {
+      // Use secure backend API instead of insecure frontend route
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${API_BASE_URL}/api/coa/generate/1`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+        },
         body: JSON.stringify({
-          message: prompt,
-          useGPT4: true,
-          systemPrompt: 'You are an expert Indian chartered accountant. Return ONLY valid JSON array of chart of accounts objects.'
+          business_profile: prompt,
+          ai_enabled: true
         })
       })
 

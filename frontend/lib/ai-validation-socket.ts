@@ -18,7 +18,9 @@ export class AIValidationSocket {
       console.log('🔌 Connecting to AI Validation WebSocket...')
       
       // Try WebSocket connection first, fallback to HTTP
-      const wsUrl = `ws://${window.location.host}/api/ai-websocket`
+      // Use secure backend WebSocket instead of insecure frontend route
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const wsUrl = `ws://${API_BASE_URL.replace('http', 'ws')}/api/v1/ws/validation`
       this.ws = new WebSocket(wsUrl)
       
       this.ws.onopen = () => {
@@ -128,11 +130,16 @@ export class AIValidationSocket {
     
     try {
       // First try the validate-input endpoint
-      const response = await fetch('/api/validate-input', {
+      // Use secure backend API instead of insecure frontend route
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${API_BASE_URL}/api/validate-input`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+        },
         body: JSON.stringify({ 
-          text: user_input, 
+          input_text: user_input, 
           context: field_name 
         })
       })

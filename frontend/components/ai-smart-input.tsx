@@ -67,15 +67,17 @@ const AISmartInput: React.FC<AISmartInputProps> = ({
     setHasBeenValidated(false)
 
     try {
-      const response = await fetch('/api/validate-input', {
+      // Use secure backend API instead of insecure frontend route
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${API_BASE_URL}/api/validate-input`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
         },
         body: JSON.stringify({
-          field_name: fieldName,
-          user_input: inputValue,
-          context: context
+          input_text: inputValue,
+          context: fieldName + (context ? ` - ${context}` : '')
         }),
       })
 

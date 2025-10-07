@@ -5,8 +5,8 @@ Handles AI integrations and services
 
 import os
 from typing import Dict, Any, Optional
-import openai
-from dotenv import load_dotenv
+import openai  # type: ignore
+from dotenv import load_dotenv  # type: ignore
 
 # Load environment variables
 load_dotenv()

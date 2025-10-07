@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # Saim Jr Accounting - Production Deployment Script for Render
 # This script handles the complete deployment process

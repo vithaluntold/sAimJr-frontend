@@ -1,34 +1,124 @@
-import { NextRequest } from 'next/server'
+// 🚨 DEPRECATED: This route has been moved to secure FastAPI backend// 🚨 DEPRECATED: This route has been moved to secure FastAPI backend// 🚨 DEPRECATED: This route has been moved to secure FastAPI backend
 
-export async function GET(request: NextRequest) {
-  // WebSocket upgrade is not directly supported in Next.js API routes
-  // We'll provide a fallback HTTP endpoint for AI validation
-  
-  return new Response('WebSocket endpoint - use POST for validation', {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/plain'
-    }
-  })
-}
+// Frontend API routes are INSECURE and should not handle business logic
 
-export async function POST(request: NextRequest) {
-  try {
-    const { message, type, id } = await request.json()
+// // Frontend API routes are INSECURE and should not handle business logic// Frontend API routes are INSECURE and should not handle business logic
+
+// This endpoint is now handled by:
+
+// - Backend: /api/v1/ws/validation (FastAPI WebSocket)// // 
+
+// - Authentication: Required via JWT tokens  
+
+// - Security: Input validation, rate limiting, proper logging// This endpoint is now handled by:// This endpoint is now handled by:
+
+
+
+import { NextResponse } from 'next/server'// - Backend: /api/v1/ws/validation (FastAPI WebSocket)// - Backend: /api/v1/ws/validation (FastAPI WebSocket)
+
+
+
+export async function GET() {// - Authentication: Required via JWT tokens  // - Authentication: Required via JWT tokens  
+
+  console.log('⚠️ DEPRECATED: Frontend WebSocket route called - redirecting to secure backend')
+
+  // - Security: Input validation, rate limiting, proper logging// - Security: Input validation, rate limiting, proper logging
+
+  return NextResponse.json({
+
+    error: 'This endpoint has been moved to secure backend',
+
+    message: 'Please use the FastAPI backend WebSocket /api/v1/ws/validation',
+
+    migration_info: {import { NextResponse } from 'next/server'import { NextResponse } from 'next/server'
+
+      old_endpoint: '/api/ai-websocket',
+
+      new_endpoint: '/api/v1/ws/validation',
+
+      backend_url: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+
+      security: 'JWT authentication required',export async function GET() {export async function GET() {
+
+      status: 'DEPRECATED - INSECURE ROUTE'
+
+    }  console.log('⚠️ DEPRECATED: Frontend WebSocket route called - redirecting to secure backend')  console.log('⚠️ DEPRECATED: Frontend WebSocket route called - redirecting to secure backend')
+
+  }, { status: 410 }) // 410 Gone - resource no longer available
+
+}    
+
+
+
+export async function POST() {  return NextResponse.json({  return NextResponse.json({
+
+  console.log('⚠️ DEPRECATED: Frontend WebSocket POST route called - redirecting to secure backend')
+
+      error: 'This endpoint has been moved to secure backend',    error: 'This endpoint has been moved to secure backend',
+
+  return NextResponse.json({
+
+    error: 'This endpoint has been moved to secure backend',    message: 'Please use the FastAPI backend WebSocket /api/v1/ws/validation',    message: 'Please use the FastAPI backend WebSocket /api/v1/ws/validation',
+
+    message: 'Please use the FastAPI backend endpoint /api/validate-input or WebSocket /api/v1/ws/validation',
+
+    migration_info: {    migration_info: {    migration_info: {
+
+      old_endpoint: '/api/ai-websocket',
+
+      new_endpoint: '/api/v1/ws/validation',      old_endpoint: '/api/ai-websocket',      old_endpoint: '/api/ai-websocket',
+
+      backend_url: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+
+      security: 'JWT authentication required',       new_endpoint: '/api/v1/ws/validation',      new_endpoint: '/api/v1/ws/validation',
+
+      status: 'DEPRECATED - INSECURE ROUTE'
+
+    }      backend_url: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',      backend_url: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+
+  }, { status: 410 }) // 410 Gone - resource no longer available
+
+}      security: 'JWT authentication required',      security: 'JWT authentication required',
+
+      status: 'DEPRECATED - INSECURE ROUTE'      status: 'DEPRECATED - INSECURE ROUTE'
+
+    }    }
+
+  }, { status: 410 }) // 410 Gone - resource no longer available  }, { status: 410 }) // 410 Gone - resource no longer available
+
+}}
+
+
+
+export async function POST() {export async function POST() {
+
+  console.log('⚠️ DEPRECATED: Frontend WebSocket POST route called - redirecting to secure backend')  console.log('⚠️ DEPRECATED: Frontend WebSocket POST route called - redirecting to secure backend')
+
     
-    console.log('🔌 AI WebSocket-style request:', { type, id, message: message?.substring(0, 50) + '...' })
-    
-    // Simulate WebSocket response format
-    let response = {
-      type: 'validation_result',
-      id: id,
-      data: {
-        success: true,
-        isValid: true,
-        suggestions: [],
-        corrections: [],
-        confidence: 0.9
-      }
+
+  return NextResponse.json({  return NextResponse.json({
+
+    error: 'This endpoint has been moved to secure backend',    error: 'This endpoint has been moved to secure backend',
+
+    message: 'Please use the FastAPI backend endpoint /api/validate-input or WebSocket /api/v1/ws/validation',    message: 'Please use the FastAPI backend endpoint /api/validate-input or WebSocket /api/v1/ws/validation',
+
+    migration_info: {    migration_info: {
+
+      old_endpoint: '/api/ai-websocket',      old_endpoint: '/api/ai-websocket',
+
+      new_endpoint: '/api/v1/ws/validation',      new_endpoint: '/api/v1/ws/validation',
+
+      backend_url: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',      backend_url: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+
+      security: 'JWT authentication required',       security: 'JWT authentication required', 
+
+      status: 'DEPRECATED - INSECURE ROUTE'      status: 'DEPRECATED - INSECURE ROUTE'
+
+    }    }
+
+  }, { status: 410 }) // 410 Gone - resource no longer available  }, { status: 410 }) // 410 Gone - resource no longer available
+
+}      }
     }
     
     if (type === 'validate_input') {
