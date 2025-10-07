@@ -153,6 +153,8 @@ export function FileUploadPrompt({ promptContent, onFileUpload, onSkip }: FileUp
               onChange={handleFileChange}
               accept={promptContent.accept}
               className="hidden"
+              aria-label={`Upload ${promptContent.accept} file`}
+              title="Upload file"
             />
           </div>
         ) : (
