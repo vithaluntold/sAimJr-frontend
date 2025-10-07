@@ -1,20 +1,12 @@
 {
-  "name": "saimjr-monorepo",
+  "name": "saimjr-frontend",
   "version": "1.0.0",
-  "description": "S(ai)m Jr - AI Accounting Assistant",
+  "description": "S(ai)m Jr - AI Accounting Assistant Frontend",
   "scripts": {
-    "preinstall": "echo 'Installing dependencies in frontend directory...'",
-    "install": "cd frontend && npm install",
-    "prebuild": "echo 'Building Next.js application in frontend directory...'",
-    "build": "cd frontend && npm run build",
-    "start": "cd frontend && npm run start",
-    "dev": "cd frontend && npm run dev",
-    "lint": "cd frontend && npm run lint",
-    "test": "echo 'No tests specified'"
+    "build": "echo 'Build should run from frontend directory'",
+    "start": "echo 'Start should run from frontend directory'",
+    "dev": "echo 'Dev should run from frontend directory'"
   },
-  "workspaces": [
-    "frontend"
-  ],
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
