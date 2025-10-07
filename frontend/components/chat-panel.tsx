@@ -38,7 +38,7 @@ import type {
 // import { CategorizationResultItem } from "../lib/enhanced-types" // Unused import
 import { ContextualAICategorizer } from "../lib/contextual-ai-categorizer"
 // import { ExportUtils } from "../lib/export-utils" // Unused import
-import { CompanyStorage } from "../lib/api-company-storage"
+import { CompanyStorage } from "../lib/company-storage"
 // import AISmartInput from "./ai-smart-input" // Unused import
 import { FileUploadPrompt } from "./file-upload-prompt"
 import { DynamicSaimAvatar, type AvatarExpression } from "./dynamic-saim-avatar"
@@ -145,7 +145,7 @@ export function ChatPanel({
       const existingProfile = CompanyStorage.getCompanyProfile()
       if (existingProfile && existingProfile.isSetupComplete) {
         setCompanyProfile(existingProfile)
-        const context = CompanyStorage.buildAIContext()
+        const context = CompanyStorage.buildAIContext(existingProfile.id)
         setAIContext(context)
       }
     }
@@ -172,8 +172,8 @@ export function ChatPanel({
           
           const newMessage = companyProfile?.isSetupComplete
             ? (() => {
-                const processingHistory = CompanyStorage.getProcessingRuns()
-                const totalTransactions = CompanyStorage.getHistoricalTransactions().length
+                const processingHistory = CompanyStorage.getProcessingRuns(companyProfile.id)
+                const totalTransactions = CompanyStorage.getHistoricalTransactions(companyProfile.id).length
                 return {
                   id: String(Date.now()),
                   sender: "saim" as const,
@@ -297,7 +297,7 @@ export function ChatPanel({
       setCompanyProfile(updatedProfile)
 
       // Build AI context for future predictions
-      const context = CompanyStorage.buildAIContext()
+      const context = CompanyStorage.buildAIContext(updatedProfile.id)
       setAIContext(context)
 
       addSaimMessage(
@@ -355,7 +355,7 @@ export function ChatPanel({
       setCurrentRun(completedRun)
 
       // Update AI context with new data
-      const context = CompanyStorage.buildAIContext()
+      const context = CompanyStorage.buildAIContext(completedRun.companyId)
       setAIContext(context)
     }
   }
@@ -803,13 +803,13 @@ export function ChatPanel({
         break
 
       case "view_processing_history":
-        const processingHistory = CompanyStorage.getProcessingRuns()
+        const processingHistory = CompanyStorage.getProcessingRuns(companyProfile?.id)
         onShowOutput("processing_history", processingHistory)
         addSaimMessage(`Showing ${processingHistory.length} processing runs in the output panel.`)
         break
 
       case "view_rules":
-        const rules = CompanyStorage.getTransactionRules()
+        const rules = CompanyStorage.getTransactionRules(companyProfile?.id)
         onShowOutput("rules", rules)
         addSaimMessage(`Displaying ${rules.length} active rules.`)
         break
@@ -1160,7 +1160,7 @@ export function ChatPanel({
           userValidated: true,
         }
         CompanyStorage.saveTransactionRule(newRule)
-        const updatedRules = CompanyStorage.getTransactionRules()
+        const updatedRules = CompanyStorage.getTransactionRules(companyProfile?.id)
         onShowOutput("rules", updatedRules)
         addSaimMessage(`Rule "${newRule.name}" saved!`)
 
