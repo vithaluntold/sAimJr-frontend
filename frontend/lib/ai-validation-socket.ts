@@ -44,8 +44,9 @@ export class AIValidationSocket {
       
       // Try WebSocket connection first, fallback to HTTP
       // Use secure backend WebSocket instead of insecure frontend route
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const wsUrl = `ws://${API_BASE_URL.replace('http', 'ws')}/api/v1/ws/validation`
+      const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'
+      const wsUrl = `${WS_BASE_URL}/api/v1/ws/validation`
+      console.log('🔌 Connecting to WebSocket URL:', wsUrl)
       this.ws = new WebSocket(wsUrl)
       
       this.ws.onopen = () => {
