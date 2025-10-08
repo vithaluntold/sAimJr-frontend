@@ -25,8 +25,12 @@ export default function SaimJrWorkflowPage() {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null)
 
   const initializeWorkflow = useCallback(() => {
+    console.log('🔍 INITIALIZE WORKFLOW - Debug params:', { companyId, isNewCompany })
+    
     if (isNewCompany) {
-      // Starting fresh company setup
+      // Starting fresh company setup - CLEAR ALL CACHED DATA
+      console.log('🧹 CLEARING ALL CACHED DATA for new company')
+      CompanyStorage.clearAllData()
       setCurrentStep(1)
       setCompletedSteps([])
       setMessages([])
@@ -60,7 +64,23 @@ export default function SaimJrWorkflowPage() {
         setCompanyProfile(updatedProfile)
       }
     } else {
-      router.push("/dashboard")
+      // No company ID and not explicitly new - check if we have any cached data
+      const currentCompanyId = CompanyStorage.getCurrentCompanyId()
+      const cachedProfile = currentCompanyId ? CompanyStorage.getCompanyProfile(currentCompanyId) : null
+      
+      if (cachedProfile) {
+        console.log('🔍 Found cached company profile:', cachedProfile.businessName)
+        console.log('🧹 CLEARING CACHED DATA to start fresh')
+        CompanyStorage.clearAllData()
+      }
+      
+      // Start fresh new company setup
+      console.log('🆕 Starting fresh company setup (no params)')
+      setCurrentStep(1)
+      setCompletedSteps([])
+      setMessages([])
+      setChatSession(null)
+      setCompanyProfile(null)
     }
   }, [companyId, isNewCompany, router])
 

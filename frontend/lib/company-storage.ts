@@ -377,4 +377,21 @@ export class CompanyStorage {
     if (data.suggestedRules) this.saveSuggestedRules(data.suggestedRules as SuggestedRule[], companyId)
     if (data.vectorSimilarities) this.saveVectorSimilarities(data.vectorSimilarities as VectorSimilarity[], companyId)
   }
+
+  // Clear all cached data - useful for starting fresh sessions
+  static clearAllData(): void {
+    console.log('🧹 CLEARING ALL localStorage data for S(ai)m Jr')
+    Object.values(STORAGE_KEYS).forEach(key => {
+      // Find all keys that start with our storage keys
+      const keysToRemove = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const storageKey = localStorage.key(i)
+        if (storageKey && (storageKey.includes('saimJr_') || storageKey.includes(key))) {
+          keysToRemove.push(storageKey)
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k))
+    })
+    console.log('✅ All S(ai)m Jr data cleared from localStorage')
+  }
 }
