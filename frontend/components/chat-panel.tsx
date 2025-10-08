@@ -652,6 +652,9 @@ export function ChatPanel({
       addSaimMessage("🤖 Validating and correcting your input...", undefined, undefined, undefined, true, Date.now(), 3, processingId)
       
       // REAL-TIME AI VALIDATION via WebSocket (fast!)
+      console.log('🔌 WebSocket connected status:', aiValidationSocket.isConnected())
+      console.log('🚀 Sending validation request for:', currentInput)
+      
       aiValidationSocket.validateRealtime(
         currentQuestion.key,
         currentInput,
@@ -663,6 +666,14 @@ export function ChatPanel({
       )
       .then(validation => {
         console.log('✅ Real-time AI validation result:', validation)
+        console.log('🔍 Validation details:', {
+          success: validation.success,
+          isValid: validation.isValid,
+          corrected_value: validation.corrected_value,
+          requires_clarification: validation.requires_clarification,
+          suggestions: validation.suggestions
+        })
+        
         // const finalValue = currentInput // Unused variable
         let validationMessage = ""
         
@@ -733,8 +744,10 @@ export function ChatPanel({
         }
         
         // Force continue to next question immediately - no delays
-        console.log('🚀 CONTINUING TO NEXT QUESTION - currentBPQuestionIndex:', currentBPQuestionIndex)
-        console.log('🚀 Total questions:', initialBusinessProfileQuestions.length)
+        console.log('🚀 VALIDATION COMPLETE - CONTINUING TO NEXT QUESTION')
+        console.log('🚀 Current index:', currentBPQuestionIndex, 'Total questions:', initialBusinessProfileQuestions.length)
+        console.log('🚀 Updated business profile:', updatedProfile)
+        
         setTimeout(() => {
           if (currentBPQuestionIndex < initialBusinessProfileQuestions.length - 1) {
             const nextIndex = currentBPQuestionIndex + 1
