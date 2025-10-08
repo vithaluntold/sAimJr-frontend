@@ -634,6 +634,32 @@ export function ChatPanel({
       const processingId = `validation_${Date.now()}`
       addSaimMessage("🤖 Validating and correcting your input...", undefined, undefined, undefined, true, Date.now(), 3, processingId)
       
+      // Add a timeout to prevent hanging
+      const validationTimeout = setTimeout(() => {
+        console.log('⏰ AI validation timeout - proceeding without validation')
+        // Remove processing message
+        setMessages(prev => prev.filter(msg => msg.id !== processingId))
+        
+        // Proceed with simple validation
+        const updatedProfile = { ...businessProfile, [currentQuestion.key]: currentInput }
+        setBusinessProfile(updatedProfile)
+        addSaimMessage(`✅ Got it! "${currentInput}"`)
+        
+        handleSaimResponse(() => {
+          if (currentBPQuestionIndex < initialBusinessProfileQuestions.length - 1) {
+            setCurrentBPQuestionIndex(currentBPQuestionIndex + 1)
+            addSaimMessage(initialBusinessProfileQuestions[currentBPQuestionIndex + 1].text)
+          } else {
+            const newProfile = createCompanyProfile(updatedProfile)
+            setCompanyProfile(newProfile)
+            proceedToNextStepPrompt(1)
+            setTimeout(() => {
+              onCompanyCreated?.(newProfile)
+            }, 500)
+          }
+        })
+      }, 3000) // 3 second timeout
+
       // REAL-TIME AI VALIDATION via WebSocket (fast!)
       aiValidationSocket.validateRealtime(
         currentQuestion.key,
@@ -645,6 +671,7 @@ export function ChatPanel({
         }
       )
       .then(validation => {
+        clearTimeout(validationTimeout) // Cancel timeout since we got response
         console.log('✅ Real-time AI validation result:', validation)
         // const finalValue = currentInput // Unused variable
         let validationMessage = ""
@@ -732,6 +759,7 @@ export function ChatPanel({
         })
       })
       .catch(error => {
+        clearTimeout(validationTimeout) // Cancel timeout since we got error
         console.error('AI validation error:', error)
         // Fall back to original logic without validation
         const updatedProfile = { ...businessProfile, [currentQuestion.key]: currentInput }
