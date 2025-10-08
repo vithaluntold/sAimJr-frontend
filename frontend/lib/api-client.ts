@@ -1,26 +1,32 @@
 // Enhanced API client for S(ai)m Jr FastAPI Backend
 // Point to FastAPI backend server running on port 8000
+import type {
+  CompanyProfile,
+  ProcessingRun,
+  HistoricalTransaction,
+  TransactionRule,
+  ChatSession,
+} from "./types"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
 
 export class APIError extends Error {
   constructor(
     public status: number,
     message: string,
-    public data?: any,
+    public data?: unknown,
   ) {
     super(message)
     this.name = "APIError"
   }
 }
 
-interface User {
-  // Define the User interface here based on your application's requirements
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  // Add other properties as needed
-}
+// interface User { // Unused interface
+//   id: string
+//   email: string
+//   firstName: string
+//   lastName: string
+// }
 
 class APIClient {
   private baseURL: string
@@ -85,78 +91,78 @@ class APIClient {
 
   // Subscription Management
   async getSubscriptionPlans() {
-    return this.request<any[]>("/billing/plans")
+    return this.request<unknown[]>("/billing/plans")
   }
 
   async getCurrentSubscription() {
-    return this.request<any>("/billing/subscription")
+    return this.request<unknown>("/billing/subscription")
   }
 
   async createSubscription(planId: string, paymentMethodId: string) {
-    return this.request<any>("/billing/subscription", {
+    return this.request<unknown>("/billing/subscription", {
       method: "POST",
       body: JSON.stringify({ planId, paymentMethodId }),
     })
   }
 
   async updateSubscription(planId: string) {
-    return this.request<any>("/billing/subscription", {
+    return this.request<unknown>("/billing/subscription", {
       method: "PUT",
       body: JSON.stringify({ planId }),
     })
   }
 
   async cancelSubscription() {
-    return this.request<any>("/billing/subscription/cancel", {
+    return this.request<unknown>("/billing/subscription/cancel", {
       method: "POST",
     })
   }
 
   // Token Management
   async getTokenWallet() {
-    return this.request<any>("/tokens/wallet")
+    return this.request<{ balance: number; currency: string }>("/tokens/wallet")
   }
 
   async getTokenPackages() {
-    return this.request<any[]>("/tokens/packages")
+    return this.request<Array<{ id: string; name: string; tokens: number; price: number; currency: string }>>("/tokens/packages")
   }
 
   async purchaseTokens(packageId: string, paymentMethodId: string) {
-    return this.request<any>("/tokens/purchase", {
+    return this.request<{ success: boolean; transactionId: string; tokens: number }>("/tokens/purchase", {
       method: "POST",
       body: JSON.stringify({ packageId, paymentMethodId }),
     })
   }
 
   async getTokenTransactions(limit = 50, offset = 0) {
-    return this.request<any>(`/tokens/transactions?limit=${limit}&offset=${offset}`)
+    return this.request<Array<{ id: string; type: string; amount: number; timestamp: string; description: string }>>(`/tokens/transactions?limit=${limit}&offset=${offset}`)
   }
 
   async getUsageAnalytics(period?: string) {
     const query = period ? `?period=${period}` : ""
-    return this.request<any>(`/analytics/usage${query}`)
+    return this.request<{ totalTokens: number; totalCost: number; usage: Array<{ date: string; tokens: number; cost: number }> }>(`/analytics/usage${query}`)
   }
 
   // Payment Methods
   async getPaymentMethods() {
-    return this.request<any[]>("/billing/payment-methods")
+    return this.request<Array<{ id: string; type: string; last4: string; isDefault: boolean }>>("/billing/payment-methods")
   }
 
   async addPaymentMethod(paymentMethodId: string) {
-    return this.request<any>("/billing/payment-methods", {
+    return this.request<{ success: boolean; paymentMethodId: string }>("/billing/payment-methods", {
       method: "POST",
       body: JSON.stringify({ paymentMethodId }),
     })
   }
 
   async deletePaymentMethod(paymentMethodId: string) {
-    return this.request<any>(`/billing/payment-methods/${paymentMethodId}`, {
+    return this.request<{ success: boolean }>(`/billing/payment-methods/${paymentMethodId}`, {
       method: "DELETE",
     })
   }
 
   async setDefaultPaymentMethod(paymentMethodId: string) {
-    return this.request<any>(`/billing/payment-methods/${paymentMethodId}/default`, {
+    return this.request<{ success: boolean }>(`/billing/payment-methods/${paymentMethodId}/default`, {
       method: "POST",
     })
   }
@@ -168,7 +174,7 @@ class APIClient {
     })
   }
 
-  async createPaymentIntent(amount: number, description: string, metadata?: any) {
+  async createPaymentIntent(amount: number, description: string, metadata?: Record<string, unknown>) {
     return this.request<{ client_secret: string }>("/billing/payment-intent", {
       method: "POST",
       body: JSON.stringify({ amount, description, metadata }),
@@ -176,26 +182,26 @@ class APIClient {
   }
 
   // Company Profile (with token cost estimation)
-  async estimateTokenCost(operation: string, metadata: any) {
+  async estimateTokenCost(operation: string, metadata: Record<string, unknown>) {
     return this.request<{ estimatedTokens: number; estimatedCost: number }>("/tokens/estimate", {
       method: "POST",
       body: JSON.stringify({ operation, metadata }),
     })
   }
 
-  async createCompanyProfile(profileData: any) {
-    return this.request<any>("/api/companies", {
+  async createCompanyProfile(profileData: Partial<CompanyProfile>) {
+    return this.request<CompanyProfile>("/api/companies", {
       method: "POST",
       body: JSON.stringify(profileData),
     })
   }
 
   async getCompanyProfile(companyId: string) {
-    return this.request<any>(`/api/companies/${companyId}`)
+    return this.request<CompanyProfile>(`/api/companies/${companyId}`)
   }
 
-  async updateCompanyProfile(companyId: string, updates: any) {
-    return this.request<any>(`/api/companies/${companyId}`, {
+  async updateCompanyProfile(companyId: string, updates: Partial<CompanyProfile>) {
+    return this.request<CompanyProfile>(`/api/companies/${companyId}`, {
       method: "PUT",
       body: JSON.stringify(updates),
     })
@@ -203,7 +209,7 @@ class APIClient {
 
   // Chart of Accounts (with token tracking)
   async generateCOA(companyId: string, industry: string, businessType: string) {
-    return this.request<any>(`/api/companies/${companyId}/coa/generate`, {
+    return this.request<{ coa: Array<{ code: string; name: string; type: string }> }>(`/api/companies/${companyId}/coa/generate`, {
       method: "POST",
       body: JSON.stringify({ industry, businessType }),
     })
@@ -213,7 +219,7 @@ class APIClient {
     const formData = new FormData()
     formData.append("file", file)
 
-    return this.request<any>(`/api/companies/${companyId}/files`, {
+    return this.request<{ success: boolean; message: string }>(`/api/companies/${companyId}/files`, {
       method: "POST",
       body: formData,
       headers: {}, // Remove Content-Type to let browser set it for FormData
@@ -221,8 +227,8 @@ class APIClient {
   }
 
   // Processing Runs (with token consumption)
-  async createProcessingRun(companyId: string, runData: any) {
-    return this.request<any>(`/companies/${companyId}/runs`, {
+  async createProcessingRun(companyId: string, runData: Partial<ProcessingRun>) {
+    return this.request<ProcessingRun>(`/companies/${companyId}/runs`, {
       method: "POST",
       body: JSON.stringify(runData),
     })
@@ -234,7 +240,7 @@ class APIClient {
     formData.append("period_from", periodFrom)
     formData.append("period_to", periodTo)
 
-    return this.request<any>(`/runs/${runId}/upload-statement`, {
+    return this.request<{ success: boolean; runId: string; message: string }>(`/runs/${runId}/upload-statement`, {
       method: "POST",
       body: formData,
       headers: {},
@@ -242,75 +248,75 @@ class APIClient {
   }
 
   async getProcessingStatus(runId: string) {
-    return this.request<any>(`/runs/${runId}/status`)
+    return this.request<{ status: string; progress: number; message: string }>(`/runs/${runId}/status`)
   }
 
   async startPartyMapping(runId: string) {
-    return this.request<any>(`/runs/${runId}/map-parties`, {
+    return this.request<{ success: boolean; message: string }>(`/runs/${runId}/map-parties`, {
       method: "POST",
     })
   }
 
   async startCategorization(runId: string) {
-    return this.request<any>(`/runs/${runId}/categorize`, {
+    return this.request<{ success: boolean; message: string }>(`/runs/${runId}/categorize`, {
       method: "POST",
     })
   }
 
   async getExceptions(runId: string) {
-    return this.request<any>(`/runs/${runId}/exceptions`)
+    return this.request<Array<{ id: string; type: string; description: string; data: Record<string, unknown> }>>(`/runs/${runId}/exceptions`)
   }
 
-  async resolveException(runId: string, exceptionId: string, resolution: any) {
-    return this.request<any>(`/runs/${runId}/exceptions/${exceptionId}/resolve`, {
+  async resolveException(runId: string, exceptionId: string, resolution: Record<string, unknown>) {
+    return this.request<{ success: boolean; message: string }>(`/runs/${runId}/exceptions/${exceptionId}/resolve`, {
       method: "POST",
       body: JSON.stringify(resolution),
     })
   }
 
   async generateReport(runId: string) {
-    return this.request<any>(`/runs/${runId}/generate-report`, {
+    return this.request<{ success: boolean; reportUrl: string }>(`/runs/${runId}/generate-report`, {
       method: "POST",
     })
   }
 
   // Rules
-  async createRule(companyId: string, ruleData: any) {
-    return this.request<any>(`/api/companies/${companyId}/rules`, {
+  async createRule(companyId: string, ruleData: Partial<TransactionRule>) {
+    return this.request<TransactionRule>(`/api/companies/${companyId}/rules`, {
       method: "POST",
       body: JSON.stringify(ruleData),
     })
   }
 
   async getRules(companyId: string) {
-    return this.request<any>(`/api/companies/${companyId}/rules`)
+    return this.request<TransactionRule[]>(`/api/companies/${companyId}/rules`)
   }
 
-  async updateRule(companyId: string, ruleId: string, updates: any) {
-    return this.request<any>(`/api/companies/${companyId}/rules/${ruleId}`, {
+  async updateRule(companyId: string, ruleId: string, updates: Partial<TransactionRule>) {
+    return this.request<TransactionRule>(`/api/companies/${companyId}/rules/${ruleId}`, {
       method: "PUT",
       body: JSON.stringify(updates),
     })
   }
 
   // Chat Sessions
-  async createChatSession(companyId: string, sessionData: any) {
-    return this.request<any>(`/api/companies/${companyId}/chat-sessions`, {
+  async createChatSession(companyId: string, sessionData: Partial<ChatSession>) {
+    return this.request<ChatSession>(`/api/companies/${companyId}/chat-sessions`, {
       method: "POST",
       body: JSON.stringify(sessionData),
     })
   }
 
   async getChatSessions(companyId: string) {
-    return this.request<any>(`/api/companies/${companyId}/chat-sessions`)
+    return this.request<ChatSession[]>(`/api/companies/${companyId}/chat-sessions`)
   }
 
   async getChatSession(companyId: string, sessionId: string) {
-    return this.request<any>(`/api/companies/${companyId}/chat-sessions/${sessionId}`)
+    return this.request<ChatSession>(`/api/companies/${companyId}/chat-sessions/${sessionId}`)
   }
 
-  async addChatMessage(companyId: string, sessionId: string, messageData: any) {
-    return this.request<any>(`/api/companies/${companyId}/chat-sessions/${sessionId}/messages`, {
+  async addChatMessage(companyId: string, sessionId: string, messageData: { content: string; sender: string; timestamp: Date }) {
+    return this.request<{ success: boolean; messageId: string }>(`/api/companies/${companyId}/chat-sessions/${sessionId}/messages`, {
       method: "POST",
       body: JSON.stringify(messageData),
     })
@@ -318,18 +324,18 @@ class APIClient {
 
   // Transactions
   async getTransactions(companyId: string) {
-    return this.request<any>(`/api/companies/${companyId}/transactions`)
+    return this.request<HistoricalTransaction[]>(`/api/companies/${companyId}/transactions`)
   }
 
-  async createTransaction(companyId: string, transactionData: any) {
-    return this.request<any>(`/api/companies/${companyId}/transactions`, {
+  async createTransaction(companyId: string, transactionData: Partial<HistoricalTransaction>) {
+    return this.request<HistoricalTransaction>(`/api/companies/${companyId}/transactions`, {
       method: "POST",
       body: JSON.stringify(transactionData),
     })
   }
 
-  async updateTransaction(companyId: string, transactionId: string, updates: any) {
-    return this.request<any>(`/api/companies/${companyId}/transactions/${transactionId}`, {
+  async updateTransaction(companyId: string, transactionId: string, updates: Partial<HistoricalTransaction>) {
+    return this.request<HistoricalTransaction>(`/api/companies/${companyId}/transactions/${transactionId}`, {
       method: "PUT",
       body: JSON.stringify(updates),
     })
@@ -341,7 +347,7 @@ class APIClient {
     formData.append("file", file)
     formData.append("file_type", fileType)
 
-    return this.request<any>(`/api/companies/${companyId}/files`, {
+    return this.request<{ success: boolean; fileId: string; message: string }>(`/api/companies/${companyId}/files`, {
       method: "POST",
       body: formData,
       headers: {}, // Remove Content-Type to let browser set it for FormData
@@ -349,12 +355,12 @@ class APIClient {
   }
 
   async getFiles(companyId: string) {
-    return this.request<any>(`/api/companies/${companyId}/files`)
+    return this.request<Array<{ id: string; name: string; type: string; uploadDate: string; size: number }>>(`/api/companies/${companyId}/files`)
   }
 
   // Processing Runs
   async getProcessingRuns(companyId: string) {
-    return this.request<any>(`/api/companies/${companyId}/processing-runs`)
+    return this.request<ProcessingRun[]>(`/api/companies/${companyId}/processing-runs`)
   }
 
   // WebSocket for real-time updates (disabled for now)

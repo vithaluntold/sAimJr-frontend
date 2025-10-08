@@ -1,9 +1,36 @@
 // Comprehensive caching strategy for scalability
 import Redis from "ioredis"
 
+// Types for cached data
+export interface UserSession {
+  userId: string
+  authToken: string
+  permissions: string[]
+  lastActivity: Date
+  companyId?: string
+}
+
+export interface CompanyData {
+  id: string
+  name: string
+  businessType: string
+  chartOfAccounts: Record<string, unknown>[]
+  settings: Record<string, unknown>
+}
+
+export interface ProcessingResult {
+  runId: string
+  status: 'completed' | 'failed' | 'processing'
+  results: Record<string, unknown>
+  errors?: string[]
+  metadata: Record<string, unknown>
+}
+
+export type CacheData = UserSession | CompanyData | ProcessingResult | Record<string, unknown>
+
 export class CacheManager {
   private redis: Redis
-  private localCache = new Map<string, { data: any; expires: number }>()
+  private localCache = new Map<string, { data: CacheData; expires: number }>()
 
   constructor(redisUrl: string) {
     this.redis = new Redis(redisUrl)
@@ -14,7 +41,7 @@ export class CacheManager {
     // Level 1: Local memory cache (fastest)
     const localData = this.localCache.get(key)
     if (localData && localData.expires > Date.now()) {
-      return localData.data
+      return localData.data as T
     }
 
     // Level 2: Redis cache (fast)
@@ -36,7 +63,7 @@ export class CacheManager {
     return null
   }
 
-  async set(key: string, value: any, ttlSeconds = 3600): Promise<void> {
+  async set(key: string, value: CacheData, ttlSeconds = 3600): Promise<void> {
     // Store in both levels
     this.localCache.set(key, {
       data: value,
@@ -60,28 +87,28 @@ export class CacheManager {
   }
 
   // Cache patterns for different data types
-  async cacheUserSession(userId: string, sessionData: any): Promise<void> {
+  async cacheUserSession(userId: string, sessionData: UserSession): Promise<void> {
     await this.set(`session:${userId}`, sessionData, 1800) // 30 minutes
   }
 
-  async getCachedUserSession(userId: string): Promise<any> {
-    return this.get(`session:${userId}`)
+  async getCachedUserSession(userId: string): Promise<UserSession | null> {
+    return this.get<UserSession>(`session:${userId}`)
   }
 
-  async cacheCompanyData(companyId: string, data: any): Promise<void> {
+  async cacheCompanyData(companyId: string, data: CompanyData): Promise<void> {
     await this.set(`company:${companyId}`, data, 3600) // 1 hour
   }
 
-  async getCachedCompanyData(companyId: string): Promise<any> {
-    return this.get(`company:${companyId}`)
+  async getCachedCompanyData(companyId: string): Promise<CompanyData | null> {
+    return this.get<CompanyData>(`company:${companyId}`)
   }
 
-  async cacheProcessingResult(runId: string, result: any): Promise<void> {
+  async cacheProcessingResult(runId: string, result: ProcessingResult): Promise<void> {
     await this.set(`processing:${runId}`, result, 86400) // 24 hours
   }
 
-  async getCachedProcessingResult(runId: string): Promise<any> {
-    return this.get(`processing:${runId}`)
+  async getCachedProcessingResult(runId: string): Promise<ProcessingResult | null> {
+    return this.get<ProcessingResult>(`processing:${runId}`)
   }
 
   // Cache invalidation patterns

@@ -31,7 +31,7 @@ interface LiveValidationInputProps {
   value: string
   onChange: (value: string) => void
   onValidationComplete?: (result: ValidationResult) => void
-  context?: Record<string, any>
+  context?: Record<string, unknown>
   placeholder?: string
   disabled?: boolean
   className?: string
@@ -284,7 +284,7 @@ const LiveValidationInput: React.FC<LiveValidationInputProps> = ({
                       onClick={() => applyCorrection(validationResult.corrected_value!)}
                       className="text-xs bg-green-100 hover:bg-green-200 text-green-800 px-2 py-1 rounded"
                     >
-                      Apply: "{validationResult.corrected_value}"
+                      Apply: &quot;{validationResult.corrected_value}&quot;
                     </button>
                   )}
                 </div>

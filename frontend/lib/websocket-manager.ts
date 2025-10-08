@@ -1,9 +1,9 @@
 // WebSocket manager for real-time updates
-import { apiClient } from "./api-client"
+// import { apiClient } from "./api-client" // Unused import
 
 export type WebSocketMessage = {
   type: "processing_update" | "exception_found" | "step_complete" | "error" | "connected"
-  data?: any
+  data?: unknown
   timestamp: string
   runId?: string
 }
@@ -79,7 +79,7 @@ export class WebSocketManager {
     }
   }
 
-  send(message: any) {
+  send(message: unknown) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message))
     }

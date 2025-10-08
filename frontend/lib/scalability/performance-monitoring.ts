@@ -1,9 +1,33 @@
-// Performance monitoring and optimization
+// Types for performance statistics
+interface MetricStats {
+  count: number
+  avg: number
+  min: number
+  max: number
+  p50: number
+  p95: number
+  p99: number
+}
+
+interface ExpressRequest {
+  method: string
+  path: string
+  route?: { path: string }
+}
+
+interface ExpressResponse {
+  on: (event: string, callback: () => void) => void
+}
+
+type ExpressNext = () => void
+
+// Performance monitoring utility for tracking metrics across the application
 export class PerformanceMonitor {
   private metrics = new Map<string, number[]>()
+  private startTimes = new Map<string, number>()
   private alerts: Array<{ type: string; message: string; timestamp: Date }> = []
 
-  // Track API response times
+  // Track API endpoint response times
   trackApiResponse(endpoint: string, duration: number): void {
     if (!this.metrics.has(endpoint)) {
       this.metrics.set(endpoint, [])
@@ -37,8 +61,8 @@ export class PerformanceMonitor {
   }
 
   // Get performance statistics
-  getStats(): Record<string, any> {
-    const stats: Record<string, any> = {}
+  getStats(): Record<string, MetricStats> {
+    const stats: Record<string, MetricStats> = {}
 
     for (const [key, values] of this.metrics.entries()) {
       if (values.length === 0) continue
@@ -119,7 +143,7 @@ export class PerformanceMonitor {
 
 // Middleware for Express.js to track performance
 export const performanceMiddleware = (monitor: PerformanceMonitor) => {
-  return (req: any, res: any, next: any) => {
+  return (req: ExpressRequest, res: ExpressResponse, next: ExpressNext) => {
     const start = Date.now()
 
     res.on("finish", () => {
@@ -133,8 +157,8 @@ export const performanceMiddleware = (monitor: PerformanceMonitor) => {
 }
 
 // Database query wrapper for performance tracking
-export const trackDatabaseQuery = (monitor: PerformanceMonitor) => {
-  return async (query: string, executor: () => Promise<any>): Promise<any> => {
+export const trackDatabaseQuery = <T>(monitor: PerformanceMonitor) => {
+  return async (query: string, executor: () => Promise<T>): Promise<T> => {
     const start = Date.now()
     try {
       const result = await executor()

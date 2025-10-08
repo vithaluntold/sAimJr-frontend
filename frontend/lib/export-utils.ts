@@ -5,6 +5,19 @@
 
 import { CategorizationResultItem } from './enhanced-types'
 
+interface ContactAnalysis {
+  contactName: string
+  businessNature: string
+  relationshipType: string
+  industry: string
+  transactionCount: number
+  totalAmount: number
+  avgConfidence: number
+  preferredAccounts: Set<string>
+  warningCount: number
+  editCount: number
+}
+
 export class ExportUtils {
   /**
    * Export categorization results to CSV with comprehensive metadata
@@ -210,22 +223,25 @@ export class ExportUtils {
       }
       
       return acc
-    }, {} as Record<string, any>)
+    }, {} as Record<string, ContactAnalysis>)
 
     // Convert to array and calculate averages
-    return Object.values(contactAnalysis).map((analysis: any) => ({
-      ...analysis,
-      avgConfidence: analysis.avgConfidence / analysis.transactionCount,
-      avgAmount: analysis.totalAmount / analysis.transactionCount,
-      preferredAccounts: Array.from(analysis.preferredAccounts).join('; '),
-      riskScore: this.calculateContactRiskScore(analysis)
-    })).sort((a, b) => b.transactionCount - a.transactionCount)
+    return Object.values(contactAnalysis).map((analysis: ContactAnalysis) => {
+      const avgAmount = analysis.totalAmount / analysis.transactionCount
+      return {
+        ...analysis,
+        avgConfidence: analysis.avgConfidence / analysis.transactionCount,
+        avgAmount,
+        preferredAccounts: Array.from(analysis.preferredAccounts).join('; '),
+        riskScore: this.calculateContactRiskScore({ ...analysis, avgAmount })
+      }
+    }).sort((a, b) => b.transactionCount - a.transactionCount)
   }
 
   /**
    * Calculate risk score for contact based on various factors
    */
-  private static calculateContactRiskScore(analysis: any): number {
+  private static calculateContactRiskScore(analysis: ContactAnalysis & { avgAmount: number }): number {
     let riskScore = 0
     
     // Low confidence increases risk
@@ -246,7 +262,7 @@ export class ExportUtils {
   /**
    * Export enhanced CSV with summary information
    */
-  private static exportEnhancedCSVWithSummary(workbookData: any, companyName: string): void {
+  private static exportEnhancedCSVWithSummary(workbookData: any, companyName: string): void { // eslint-disable-line @typescript-eslint/no-explicit-any
     const sections = []
     
     // Add summary section
@@ -281,7 +297,7 @@ export class ExportUtils {
     sections.push(headers.join(','))
     
     // Add detailed data
-    workbookData.detailed.forEach((row: any) => {
+    workbookData.detailed.forEach((row: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
       const csvRow = [
         row.date,
         `"${row.description.replace(/"/g, '""')}"`,

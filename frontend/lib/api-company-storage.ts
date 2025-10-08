@@ -133,7 +133,7 @@ export class APICompanyStorage {
   }
 
   // File uploads
-  static async uploadFile(companyId: string, file: File, fileType: string = "bank_statement"): Promise<any> {
+  static async uploadFile(companyId: string, file: File, fileType: string = "bank_statement"): Promise<{ success: boolean; fileId?: string; error?: string }> {
     try {
       return await apiClient.uploadFile(companyId, file, fileType)
     } catch (error) {

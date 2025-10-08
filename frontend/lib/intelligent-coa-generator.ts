@@ -1,15 +1,12 @@
 import { ChartOfAccount } from './types'
 
 interface BusinessContext {
-  companyName: string
+  location: string
   industry: string
   companyType: string
-  location: string
-  businessNature: string
-  reportingFramework?: string
   tax?: string
-  size?: string
-  [key: string]: string | undefined
+  businessName?: string
+  [key: string]: unknown
 }
 
 export class IntelligentCoAGenerator {

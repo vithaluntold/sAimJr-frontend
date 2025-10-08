@@ -18,7 +18,7 @@ export interface DatabaseSchema {
     updated_at: Date
     last_login_at?: Date
     last_login_ip?: string
-    preferences: Record<string, any> // JSON field
+    preferences: Record<string, string | number | boolean> // JSON field
   }
 
   // Session Management
@@ -151,7 +151,7 @@ export interface DatabaseSchema {
     created_by: string // Foreign key to users
     name: string
     description?: string
-    conditions: Record<string, any> // JSON field for rule conditions
+    conditions: Record<string, string | number | boolean> // JSON field for rule conditions
     apply_to_account_id: string // Foreign key to chart_of_accounts
     apply_to_account_name: string
     is_permanent: boolean
@@ -175,7 +175,7 @@ export interface DatabaseSchema {
     current_step: number
     completed_steps: number[]
     is_active: boolean
-    context_data: Record<string, any> // JSON field for chat context
+    context_data: Record<string, unknown> // JSON field for chat context
     created_at: Date
     updated_at: Date
     last_message_at: Date
@@ -188,7 +188,7 @@ export interface DatabaseSchema {
     sender: "user" | "saim"
     message_type: "text" | "file_upload" | "processing" | "options"
     content: string
-    metadata: Record<string, any> // JSON field for message metadata
+    metadata: Record<string, unknown> // JSON field for message metadata
     created_at: Date
   }
 
@@ -251,7 +251,7 @@ export interface DatabaseSchema {
     description: string
     processing_run_id?: string // Foreign key to processing_runs
     stripe_payment_intent_id?: string
-    metadata: Record<string, any> // JSON field
+    metadata: Record<string, unknown> // JSON field
     created_at: Date
   }
 
@@ -278,7 +278,7 @@ export interface DatabaseSchema {
     action: string
     resource_type: string
     resource_id?: string
-    details: Record<string, any> // JSON field
+    details: Record<string, unknown> // JSON field
     ip_address: string
     user_agent: string
     created_at: Date
@@ -288,7 +288,7 @@ export interface DatabaseSchema {
   system_settings: {
     id: string
     key: string // Unique
-    value: Record<string, any> // JSON field
+    value: Record<string, unknown> // JSON field
     description?: string
     is_public: boolean // Whether setting is visible to non-admins
     created_at: Date

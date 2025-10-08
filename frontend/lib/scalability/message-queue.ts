@@ -1,10 +1,17 @@
 // Message queue system for async processing and scalability
 import { EventEmitter } from "events"
 
+// Union type for queue message payloads
+export type QueuePayload = 
+  | { runId: string; fileUrl: string; companyId: string } // PROCESS_BANK_STATEMENT
+  | { to: string; subject: string; template: string; data: Record<string, unknown> } // SEND_EMAIL
+  | { userId: string; companyId: string; eventData: Record<string, unknown> } // UPDATE_ANALYTICS
+  | Record<string, unknown> // Fallback for other message types
+
 export interface QueueMessage {
   id: string
   type: string
-  payload: any
+  payload: QueuePayload
   priority: number
   attempts: number
   maxAttempts: number
@@ -34,7 +41,7 @@ export class MessageQueue extends EventEmitter {
   // Add message to queue
   async enqueue(
     type: string,
-    payload: any,
+    payload: QueuePayload,
     options: {
       priority?: number
       delay?: number
@@ -133,8 +140,8 @@ export class MessageQueue extends EventEmitter {
   }
 
   // Get queue statistics
-  getStats(): Record<string, any> {
-    const stats: Record<string, any> = {}
+  getStats(): Record<string, { pending: number; processing: number; total: number } | number> {
+    const stats: Record<string, { pending: number; processing: number; total: number } | number> = {}
 
     for (const [type, queue] of this.queues.entries()) {
       const processing = this.processing.get(type)?.size || 0
@@ -190,14 +197,27 @@ export const MESSAGE_TYPES = {
   SYNC_EXTERNAL_DATA: "sync_external_data",
 }
 
+// Dependencies interface for message processors
+interface MessageProcessorDependencies {
+  fileProcessor: {
+    processBankStatement: (runId: string, fileUrl: string, companyId: string) => Promise<void>
+  }
+  emailService: {
+    sendEmail: (to: string, subject: string, template: string, data: Record<string, unknown>) => Promise<void>
+  }
+  analyticsService: {
+    updateAnalytics: (userId: string, companyId: string, eventData: Record<string, unknown>) => Promise<void>
+  }
+}
+
 // Message queue processors
-export const createMessageProcessors = (dependencies: any) => {
+export const createMessageProcessors = (dependencies: MessageProcessorDependencies) => {
   const processors: QueueProcessor[] = [
     {
       type: MESSAGE_TYPES.PROCESS_BANK_STATEMENT,
       concurrency: 5,
       handler: async (message) => {
-        const { runId, fileUrl, companyId } = message.payload
+        const { runId, fileUrl, companyId } = message.payload as { runId: string; fileUrl: string; companyId: string }
         // Process bank statement file
         await dependencies.fileProcessor.processBankStatement(runId, fileUrl, companyId)
       },
@@ -206,7 +226,7 @@ export const createMessageProcessors = (dependencies: any) => {
       type: MESSAGE_TYPES.SEND_EMAIL,
       concurrency: 10,
       handler: async (message) => {
-        const { to, subject, template, data } = message.payload
+        const { to, subject, template, data } = message.payload as { to: string; subject: string; template: string; data: Record<string, unknown> }
         await dependencies.emailService.sendEmail(to, subject, template, data)
       },
     },
@@ -214,7 +234,7 @@ export const createMessageProcessors = (dependencies: any) => {
       type: MESSAGE_TYPES.UPDATE_ANALYTICS,
       concurrency: 3,
       handler: async (message) => {
-        const { userId, companyId, eventData } = message.payload
+        const { userId, companyId, eventData } = message.payload as { userId: string; companyId: string; eventData: Record<string, unknown> }
         await dependencies.analyticsService.updateAnalytics(userId, companyId, eventData)
       },
     },
