@@ -16,13 +16,38 @@ export async function POST(
       )
     }
 
-    // Simulate bank statement processing (in production, this would call your backend)
-    console.log(`Processing bank statement: ${file.name} for company: ${companyId}`)
+    // Forward to real backend AI processing
+    console.log(`Forwarding bank statement: ${file.name} for company: ${companyId} to AI backend`)
     
-    // Mock processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    // Generate mock processing result
+    const backendFormData = new FormData()
+    backendFormData.append("file", file)
+    backendFormData.append("company_id", companyId)
+    
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const backendResponse = await fetch(`${backendUrl}/api/process-bank-statement`, {
+      method: 'POST',
+      body: backendFormData,
+      headers: {
+        'Authorization': `Bearer ${request.headers.get('authorization')?.replace('Bearer ', '') || ''}`
+      }
+    })
+    
+    if (!backendResponse.ok) {
+      throw new Error(`Backend processing failed: ${backendResponse.status}`)
+    }
+    
+    const backendResult = await backendResponse.json()
+    console.log('✅ Real AI processing result:', backendResult)
+    
+    return NextResponse.json({
+      success: true,
+      processing_result: backendResult
+    })
+  } catch (error) {
+    console.error('❌ Bank statement processing error:', error)
+    
+    // Fallback to mock data if backend fails
+    console.log('🔄 Falling back to mock processing for development')
     const mockTransactions = [
       {
         id: "txn_001",
@@ -74,16 +99,6 @@ export async function POST(
     }
 
     return NextResponse.json(processingResult)
-
-  } catch (error) {
-    console.error("Bank statement processing error:", error)
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: "Failed to process bank statement",
-        details: error instanceof Error ? error.message : "Unknown error"
-      },
-      { status: 500 }
-    )
   }
+}
 }

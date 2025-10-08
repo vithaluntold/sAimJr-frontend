@@ -45,7 +45,7 @@ export class AIValidationSocket {
       // Try WebSocket connection first, fallback to HTTP
       // Use secure backend WebSocket instead of insecure frontend route
       const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'
-      const wsUrl = `${WS_BASE_URL}/api/v1/ws/validation`
+      const wsUrl = `${WS_BASE_URL}/api/validate-live`
       console.log('🔌 Connecting to WebSocket URL:', wsUrl)
       this.ws = new WebSocket(wsUrl)
       
@@ -156,8 +156,7 @@ export class AIValidationSocket {
     console.log('🔗 HTTP validation fallback for:', { field_name, user_input })
     
     try {
-      // First try the validate-input endpoint
-      // Use secure backend API instead of insecure frontend route
+      // Use backend AI validation endpoint directly
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const response = await fetch(`${API_BASE_URL}/api/validate-input`, {
         method: 'POST',
