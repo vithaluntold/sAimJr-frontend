@@ -865,16 +865,25 @@ export function ChatPanel({
         break
 
       case "generate_coa":
-        if (!companyProfile) {
-          addSaimMessage("Error: No company profile found.")
+        console.log('🏢 Generate COA clicked - companyProfile:', companyProfile)
+        console.log('🏢 businessProfile:', businessProfile)
+        
+        // Try to get profile from storage if not in state
+        const currentProfile = companyProfile || CompanyStorage.getCompanyProfile()
+        console.log('🏢 currentProfile from storage:', currentProfile)
+        
+        if (!currentProfile) {
+          addSaimMessage("Error: No company profile found. Please complete company setup first.")
+          console.error('❌ No company profile available for COA generation')
           return
         }
 
         // Generate COA based on company profile
-        const generatedCOA = generateCOAForCompany(companyProfile)
+        const generatedCOA = generateCOAForCompany(currentProfile)
+        console.log('📊 Generated COA:', generatedCOA.length, 'accounts')
 
         commonAIProcess(
-          `Generating Chart of Accounts for ${companyProfile.industry} business`,
+          `Generating Chart of Accounts for ${currentProfile.industry} business`,
           5,
           2,
           generatedCOA,
