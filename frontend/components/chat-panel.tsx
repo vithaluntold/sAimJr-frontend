@@ -43,6 +43,7 @@ import { CompanyStorage } from "../lib/company-storage"
 import { FileUploadPrompt } from "./file-upload-prompt"
 import { DynamicSaimAvatar, type AvatarExpression } from "./dynamic-saim-avatar"
 import { AIValidationSocket } from "../lib/ai-validation-socket"
+import { IntelligentCoAGenerator } from "../lib/intelligent-coa-generator"
 
 const initialBusinessProfileQuestions = [
   {
@@ -878,28 +879,74 @@ export function ChatPanel({
           return
         }
 
-        // Generate COA based on company profile
-        const generatedCOA = generateCOAForCompany(currentProfile)
-        console.log('📊 Generated COA:', generatedCOA.length, 'accounts')
-
+        // Generate COA using REAL AI (not hardcoded template)
+        console.log('🤖 Using REAL AI COA generation for profile:', currentProfile)
+        
+        const aiCoAGenerator = IntelligentCoAGenerator.getInstance()
+        const businessContext = {
+          location: currentProfile.location,
+          industry: currentProfile.industry,
+          companyType: currentProfile.natureOfBusiness,
+          tax: currentProfile.statutoryCompliances.join(', '),
+          businessName: currentProfile.businessName,
+          reportingFramework: currentProfile.reportingFramework
+        }
+        
+        // Start AI COA generation process
         commonAIProcess(
-          `Generating Chart of Accounts for ${currentProfile.industry} business`,
-          5,
+          `🤖 Generating AI-powered Chart of Accounts for ${currentProfile.industry} business`,
+          8,
           2,
-          generatedCOA,
+          null,
           "coa",
         )
 
-        // Update company profile with generated COA
-        setTimeout(() => {
-          const updatedProfile = {
-            ...companyProfile,
-            chartOfAccounts: generatedCOA,
-            updatedAt: new Date().toISOString(),
-          }
-          CompanyStorage.saveCompanyProfile(updatedProfile)
-          setCompanyProfile(updatedProfile)
-        }, 5000)
+        // Generate COA with real AI in background
+        aiCoAGenerator.generateContextualChartOfAccounts(businessContext)
+          .then(generatedCOA => {
+            console.log('📊 AI Generated COA:', generatedCOA.length, 'accounts')
+            if (generatedCOA.length > 0) {
+              // Update the processing message with success
+              setMessages(prev => 
+                prev.map(msg => 
+                  msg.isProcessing && msg.text?.includes('Generating AI-powered Chart')
+                    ? { ...msg, isProcessing: false, text: `✅ Generated ${generatedCOA.length} AI-customized accounts for ${currentProfile.industry} business` }
+                    : msg
+                )
+              )
+              
+              // Update company profile with generated COA
+              const updatedProfile = {
+                ...currentProfile,
+                chartOfAccounts: generatedCOA,
+                updatedAt: new Date().toISOString(),
+              }
+              CompanyStorage.saveCompanyProfile(updatedProfile)
+              setCompanyProfile(updatedProfile)
+              
+              // Show COA in output panel
+              onShowOutput("coa", generatedCOA)
+            } else {
+              // AI failed, show error
+              setMessages(prev => 
+                prev.map(msg => 
+                  msg.isProcessing && msg.text?.includes('Generating AI-powered Chart')
+                    ? { ...msg, isProcessing: false, text: `❌ AI COA generation failed. Please try again.` }
+                    : msg
+                )
+              )
+            }
+          })
+          .catch(error => {
+            console.error('❌ AI COA Generation error:', error)
+            setMessages(prev => 
+              prev.map(msg => 
+                msg.isProcessing && msg.text?.includes('Generating AI-powered Chart')
+                  ? { ...msg, isProcessing: false, text: `❌ AI COA generation failed: ${error.message}` }
+                  : msg
+              )
+            )
+          })
         break
 
       case "upload_coa":
