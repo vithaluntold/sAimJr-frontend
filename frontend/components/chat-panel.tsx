@@ -273,7 +273,13 @@ export function ChatPanel({
   }
 
   const addUserMessage = (text: string) => {
-    setMessages((prev) => [...prev, { id: String(Date.now()), sender: "user", text }])
+    const userMessage = { id: String(Date.now()), sender: "user" as const, text }
+    console.log('👤 Adding user message:', userMessage)
+    setMessages((prev) => {
+      const newMessages = [...prev, userMessage]
+      console.log('👤 Messages after adding user message:', newMessages.length, 'total')
+      return newMessages
+    })
   }
 
   const handleSaimResponse = (responseFn: () => void, delay = 800) => {
@@ -703,7 +709,13 @@ export function ChatPanel({
         setBusinessProfile(updatedProfile)
         
         // Remove processing message and continue
-        setMessages(prev => prev.filter(msg => msg.id !== processingId))
+        setMessages(prev => {
+          const filteredMessages = prev.filter(msg => msg.id !== processingId)
+          const removedCount = prev.length - filteredMessages.length
+          console.log(`🧹 Removed ${removedCount} processing messages. Total messages: ${prev.length} → ${filteredMessages.length}`)
+          console.log('🧹 Remaining messages:', filteredMessages.map(m => ({ id: m.id, sender: m.sender, text: m.text?.substring(0, 50) })))
+          return filteredMessages
+        })
         
         if (validationMessage) {
           addSaimMessage(validationMessage)
