@@ -659,18 +659,23 @@ export function ChatPanel({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          input_text: currentInput, 
-          context: JSON.stringify({
-            step: "company_setup",
-            question_index: currentBPQuestionIndex,
-            field_name: currentQuestion.key,
-            business_profile: businessProfile
-          })
+          user_input: currentInput, 
+          field_name: currentQuestion.key,
+          context: "business_setup"
         })
       })
-      .then(response => response.json())
-      .then(validation => {
-        console.log('✅ REAL backend AI validation result:', validation)
+      .then(response => {
+        console.log('📡 Backend response status:', response.status, response.statusText)
+        if (!response.ok) {
+          throw new Error(`Backend validation failed: ${response.status} ${response.statusText}`)
+        }
+        return response.json()
+      })
+      .then(response => {
+        console.log('✅ REAL backend AI validation response:', response)
+        // Backend returns { success: true, validation_result: {...} }
+        const validation = response.validation_result
+        console.log('✅ Extracted validation result:', validation)
         
         // const finalValue = currentInput // Unused variable
         let validationMessage = ""

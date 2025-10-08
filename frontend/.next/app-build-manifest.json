@@ -1,3 +1,20 @@
 {
-  "pages": {}
+  "pages": {
+    "/workflow/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/workflow/page.js"
+    ],
+    "/workflow/loading": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/workflow/loading.js"
+    ],
+    "/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
+    ]
+  }
 }
