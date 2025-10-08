@@ -647,32 +647,30 @@ export function ChatPanel({
       // Company setup questions with AI validation
       const currentQuestion = initialBusinessProfileQuestions[currentBPQuestionIndex]
       
-      // Add processing indicator for validation
+      // DIRECT BACKEND AI VALIDATION - NO WEBSOCKET BULLSHIT
       const processingId = `validation_${Date.now()}`
-      addSaimMessage("🤖 Validating and correcting your input...", undefined, undefined, undefined, true, Date.now(), 3, processingId)
+      addSaimMessage("🤖 AI validating your input...", undefined, undefined, undefined, true, Date.now(), 2, processingId)
       
-      // REAL-TIME AI VALIDATION via WebSocket (fast!)
-      console.log('🔌 WebSocket connected status:', aiValidationSocket.isConnected())
-      console.log('🚀 Sending validation request for:', currentInput)
-      
-      aiValidationSocket.validateRealtime(
-        currentQuestion.key,
-        currentInput,
-        {
-          step: "company_setup",
-          question_index: currentBPQuestionIndex,
-          business_profile: businessProfile
-        }
-      )
-      .then(validation => {
-        console.log('✅ Real-time AI validation result:', validation)
-        console.log('🔍 Validation details:', {
-          success: validation.success,
-          isValid: validation.isValid,
-          corrected_value: validation.corrected_value,
-          requires_clarification: validation.requires_clarification,
-          suggestions: validation.suggestions
+      // Call backend AI validation directly
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      fetch(`${backendUrl}/api/validate-input`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          input_text: currentInput, 
+          context: JSON.stringify({
+            step: "company_setup",
+            question_index: currentBPQuestionIndex,
+            field_name: currentQuestion.key,
+            business_profile: businessProfile
+          })
         })
+      })
+      .then(response => response.json())
+      .then(validation => {
+        console.log('✅ REAL backend AI validation result:', validation)
         
         // const finalValue = currentInput // Unused variable
         let validationMessage = ""
@@ -773,29 +771,41 @@ export function ChatPanel({
         }, 100) // Very short delay to ensure state updates
       })
       .catch(error => {
-        console.error('AI validation error:', error)
-        // Fall back to original logic without validation
-        const updatedProfile = { ...businessProfile, [currentQuestion.key]: currentInput }
-        setBusinessProfile(updatedProfile)
+        console.error('🚨 BACKEND AI VALIDATION FAILED:', error)
         
-        // Remove processing message
+        // NO FAKE RESPONSES - Show actual validation failure
         setMessages(prev => prev.filter(msg => msg.id !== processingId))
-        addSaimMessage("✅ Got it! (AI validation unavailable)")
+        addSaimMessage(`❌ AI validation failed: ${error.message}. Using basic validation.`)
         
-        handleSaimResponse(() => {
-          if (currentBPQuestionIndex < initialBusinessProfileQuestions.length - 1) {
-            setCurrentBPQuestionIndex(currentBPQuestionIndex + 1)
-            addSaimMessage(initialBusinessProfileQuestions[currentBPQuestionIndex + 1].text)
-            setIsAwaitingResponse(true)
-          } else {
-            const newProfile = createCompanyProfile(updatedProfile)
-            setCompanyProfile(newProfile)
-            proceedToNextStepPrompt(1)
-            setTimeout(() => {
-              onCompanyCreated?.(newProfile)
-            }, 500)
-          }
-        })
+        // Basic client-side validation as fallback
+        let isValid = currentInput.trim().length > 2
+        let validationMessage = isValid ? `✅ "${currentInput}" accepted` : `❌ Please enter a valid ${currentQuestion.key}`
+        
+        if (isValid) {
+          const updatedProfile = { ...businessProfile, [currentQuestion.key]: currentInput }
+          setBusinessProfile(updatedProfile)
+          
+          addSaimMessage(validationMessage)
+          
+          setTimeout(() => {
+            if (currentBPQuestionIndex < initialBusinessProfileQuestions.length - 1) {
+              const nextIndex = currentBPQuestionIndex + 1
+              setCurrentBPQuestionIndex(nextIndex)
+              addSaimMessage(initialBusinessProfileQuestions[nextIndex].text)
+              setIsAwaitingResponse(true)
+            } else {
+              const newProfile = createCompanyProfile(updatedProfile)
+              setCompanyProfile(newProfile)
+              proceedToNextStepPrompt(1)
+              setTimeout(() => {
+                onCompanyCreated?.(newProfile)
+              }, 500)
+            }
+          }, 100)
+        } else {
+          addSaimMessage(validationMessage)
+          setIsAwaitingResponse(true)
+        }
       })
     }
   }
