@@ -64,18 +64,12 @@ export default function SaimJrWorkflowPage() {
         setCompanyProfile(updatedProfile)
       }
     } else {
-      // No company ID and not explicitly new - check if we have any cached data
-      const currentCompanyId = CompanyStorage.getCurrentCompanyId()
-      const cachedProfile = currentCompanyId ? CompanyStorage.getCompanyProfile(currentCompanyId) : null
+      // No company ID and not explicitly new - ALWAYS clear cached data and start fresh
+      console.log('🧹 FORCE CLEARING ALL CACHED DATA - no company params provided')
+      CompanyStorage.clearAllData()
       
-      if (cachedProfile) {
-        console.log('🔍 Found cached company profile:', cachedProfile.businessName)
-        console.log('🧹 CLEARING CACHED DATA to start fresh')
-        CompanyStorage.clearAllData()
-      }
-      
-      // Start fresh new company setup
-      console.log('🆕 Starting fresh company setup (no params)')
+      // Start completely fresh new company setup
+      console.log('🆕 Starting completely fresh company setup (no params)')
       setCurrentStep(1)
       setCompletedSteps([])
       setMessages([])

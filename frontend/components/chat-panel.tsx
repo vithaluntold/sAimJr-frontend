@@ -140,14 +140,15 @@ export function ChatPanel({
     console.log('🚀 Initializing AI Validation WebSocket...')
     aiValidationSocket.connect()
     
-    // Load existing company profile (only if not creating new company)
-    if (!isNewCompany) {
-      const existingProfile = CompanyStorage.getCompanyProfile()
-      if (existingProfile && existingProfile.isSetupComplete) {
-        setCompanyProfile(existingProfile)
-        const context = CompanyStorage.buildAIContext(existingProfile.id)
-        setAIContext(context)
-      }
+    // Load existing company profile ONLY if we have a specific company profile passed as prop
+    if (!isNewCompany && companyProfile && companyProfile.isSetupComplete) {
+      console.log('📋 Loading existing company profile from props:', companyProfile.businessName)
+      const context = CompanyStorage.buildAIContext(companyProfile.id)
+      setAIContext(context)
+    } else {
+      console.log('🆕 Starting fresh - no existing profile loaded')
+      setCompanyProfile(null)
+      setAIContext(null)
     }
     
     // Cleanup on unmount
@@ -155,7 +156,16 @@ export function ChatPanel({
       console.log('🔌 Disconnecting AI Validation WebSocket...')
       aiValidationSocket.disconnect()
     }
-  }, [isNewCompany, aiValidationSocket])
+  }, [isNewCompany, aiValidationSocket, companyProfile])
+
+  // Force reset companyProfile when no company data should be loaded
+  useEffect(() => {
+    if (!companyProfile && !isNewCompany) {
+      console.log('🧹 FORCE CLEARING companyProfile state - ensuring clean start')
+      setCompanyProfile(null)
+      setBusinessProfile({})
+    }
+  }, [companyProfile, isNewCompany])
 
   // Cleanup stuck processing messages and typing states
   useEffect(() => {
