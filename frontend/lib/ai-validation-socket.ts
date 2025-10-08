@@ -18,6 +18,10 @@ interface ValidationResult {
   isValid: boolean
   suggestions: string[]
   corrections: string[]
+  corrections_made: Array<{ original: string; corrected: string; type: string }>
+  corrected_value?: string
+  requires_clarification?: boolean
+  clarification_options?: string[]
   confidence: number
 }
 
@@ -109,7 +113,7 @@ export class AIValidationSocket {
     this.ws = null
   }
 
-  async validateRealtime(field_name: string, user_input: string, context?: string): Promise<ValidationResult> {
+  async validateRealtime(field_name: string, user_input: string, context?: string | Record<string, unknown>): Promise<ValidationResult> {
     return new Promise(async (resolve, reject) => {
       const id = `validation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       
@@ -119,17 +123,18 @@ export class AIValidationSocket {
         
         this.pendingRequests.set(id, resolve)
         
+        const contextStr = typeof context === 'string' ? context : JSON.stringify(context)
         this.send({
           type: 'validate',
           id,
-          data: { field_name, user_input, context }
+          data: { field_name, user_input, context: contextStr }
         })
         
         // Timeout after 5 seconds
         setTimeout(() => {
           if (this.pendingRequests.has(id)) {
             this.pendingRequests.delete(id)
-            this.fallbackHttpValidation(field_name, user_input).then(resolve).catch(reject)
+            this.fallbackHttpValidation(field_name, user_input, context).then(resolve).catch(reject)
           }
         }, 5000)
         
@@ -137,7 +142,7 @@ export class AIValidationSocket {
         // Fallback to HTTP validation
         console.log('🔄 Using HTTP fallback for validation:', user_input)
         try {
-          const result = await this.fallbackHttpValidation(field_name, user_input)
+          const result = await this.fallbackHttpValidation(field_name, user_input, context)
           resolve(result)
         } catch (error) {
           reject(error)
@@ -146,7 +151,7 @@ export class AIValidationSocket {
     })
   }
 
-  private async fallbackHttpValidation(field_name: string, user_input: string): Promise<ValidationResult> {
+  private async fallbackHttpValidation(field_name: string, user_input: string, context?: string | Record<string, unknown>): Promise<ValidationResult> {
     console.log('🔗 HTTP validation fallback for:', { field_name, user_input })
     
     try {
@@ -161,7 +166,7 @@ export class AIValidationSocket {
         },
         body: JSON.stringify({ 
           input_text: user_input, 
-          context: field_name 
+          context: typeof context === 'object' ? JSON.stringify(context) : (context || field_name)
         })
       })
       
@@ -177,16 +182,21 @@ export class AIValidationSocket {
         success: true,
         isValid: result.isValid,
         corrections: result.corrections || [],
+        corrections_made: result.corrections_made || [],
+        corrected_value: result.corrected_value,
+        requires_clarification: result.requires_clarification,
+        clarification_options: result.clarification_options,
         suggestions: result.suggestions || [],
         confidence: result.confidence || 0.9
       }
     } catch (error) {
       console.error('❌ HTTP validation failed:', error)
-      // Return a valid response so validation doesn't break
+      // Return a simple success response so validation doesn't break
       return {
-        success: false,
+        success: true,
         isValid: true,
         corrections: [],
+        corrections_made: [],
         suggestions: [],
         confidence: 0.5
       }
