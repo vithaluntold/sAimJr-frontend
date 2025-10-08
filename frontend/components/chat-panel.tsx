@@ -731,10 +731,15 @@ export function ChatPanel({
           addSaimMessage(validationMessage)
         }
         
-        handleSaimResponse(() => {
+        // Force continue to next question immediately - no delays
+        console.log('🚀 CONTINUING TO NEXT QUESTION - currentBPQuestionIndex:', currentBPQuestionIndex)
+        console.log('🚀 Total questions:', initialBusinessProfileQuestions.length)
+        setTimeout(() => {
           if (currentBPQuestionIndex < initialBusinessProfileQuestions.length - 1) {
-            setCurrentBPQuestionIndex(currentBPQuestionIndex + 1)
-            addSaimMessage(initialBusinessProfileQuestions[currentBPQuestionIndex + 1].text)
+            const nextIndex = currentBPQuestionIndex + 1
+            console.log('🚀 Moving to question index:', nextIndex)
+            setCurrentBPQuestionIndex(nextIndex)
+            addSaimMessage(initialBusinessProfileQuestions[nextIndex].text)
             setIsAwaitingResponse(true)
           } else {
             // Create company profile
@@ -751,7 +756,7 @@ export function ChatPanel({
               onCompanyCreated?.(newProfile)
             }, 500)
           }
-        })
+        }, 100) // Very short delay to ensure state updates
       })
       .catch(error => {
         console.error('AI validation error:', error)
